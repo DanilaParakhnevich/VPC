@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: user-service
+
+  # Datasource (PostgreSQL)
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:users}
+    username: ${DB_USER:-user}
+    password: ${DB_PASSWORD:-password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: UserServiceHikariPool
+
+  # JPA & Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: validate   # Используем Flyway для миграций, не даём Hibernate менять схему
+    properties:
+      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        format_sql: false
+    show-sql: ${SHOW_SQL:false}
+    open-in-view: false
+
+  # FLYWAY
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  # Security (для конфигурации)
+  security:
+    user:
+      name: ${ACTUATOR_USER:admin}
+      password: ${ACTUATOR_PASSWORD:admin123}
+
+# Server
+server:
+  port: ${PORT:8081}
+  shutdown: graceful
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    connection-timeout: 20000
+    max-connections: 10000
+    accept-count: 100
+
+# Logging
+logging:
+  level:
+    com.media.user: ${LOG_LEVEL:DEBUG}
+    org.springframework.web: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{ISO8601} %highlight(%-5level) [%thread] %logger{36} - %msg%n"
+    file: "%d{ISO8601} %-5level [%thread] %logger{36} - %msg%n"
+  file:
+    name: /var/log/user-service/app.log
+    max-size: 100MB
+    max-history: 30

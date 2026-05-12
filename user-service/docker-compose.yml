@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: users-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-users}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-users}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - media-network
+
+  user-service:
+    build: .
+    container_name: user-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_NAME: ${DB_NAME:-users}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      SHOW_SQL: ${SHOW_SQL:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
+      ACTUATOR_USER: ${ACTUATOR_USER:-admin}
+      ACTUATOR_PASSWORD: ${ACTUATOR_PASSWORD:-admin123}
+      PORT: ${PORT:-8081}
+      _JAVA_OPTIONS: >
+        -Xdebug
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    ports:
+      - "5005:5005"
+      - "8081:8081"
+    volumes:
+      - user_logs:/var/log/user-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - media-network
+
+volumes:
+  postgres_data:
+  user_logs:
+
+networks:
+  media-network:
+    driver: bridge
