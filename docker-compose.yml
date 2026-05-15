@@ -1,0 +1,86 @@
+services:
+  broker:
+    image: confluentinc/cp-kafka:latest
+    container_name: broker
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: kafka-topics --bootstrap-server localhost:9090 --list
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9090,CONTROLLER://0.0.0.0:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9090
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  users-db:
+    image: postgres:16-alpine
+    container_name: users-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-users}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-users}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - media-network
+
+  user-service:
+    build: user-service
+    container_name: user-service
+    depends_on:
+      users-db:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    environment:
+      DB_HOST: ${USERS_DB_HOST:-postgres}
+      DB_NAME: ${USERS_DB_NAME:-users}
+      DB_USER: ${USERS_DB_USER:-postgres}
+      DB_PASSWORD: ${USERS_DB_PASSWORD:-postgres}
+      SHOW_SQL: ${USERS_SHOW_SQL:-false}
+      LOG_LEVEL: ${USERS_LOG_LEVEL:-DEBUG}
+      ACTUATOR_USER: ${USERS_ACTUATOR_USER:-admin}
+      ACTUATOR_PASSWORD: ${USERS_ACTUATOR_PASSWORD:-admin123}
+      PORT: ${USERS_PORT:-8081}
+      _JAVA_OPTIONS: >
+        -Xdebug
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    ports:
+      - "5005:5005"
+      - "8081:8081"
+    volumes:
+      - user_logs:/var/log/user-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - media-network
+
+volumes:
+  postgres_data:
+  user_logs:
+
+networks:
+  media-network:
+    driver: bridge

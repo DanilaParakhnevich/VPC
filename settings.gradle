@@ -1,2 +1,6 @@
 rootProject.name = 'VPC'
 include 'user-service'
+include 'media-service'
+include 'event-bus-service'
+include 'music-service'
+

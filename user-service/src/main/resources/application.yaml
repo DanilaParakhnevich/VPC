@@ -4,7 +4,7 @@ spring:
 
   # Datasource (PostgreSQL)
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:users}
+    url: jdbc:postgresql://${USERS_DB_HOST:users-db}:5432/${DB_NAME:users}
     username: ${DB_USER:-user}
     password: ${DB_PASSWORD:-password}
     driver-class-name: org.postgresql.Driver
@@ -69,3 +69,7 @@ logging:
     name: /var/log/user-service/app.log
     max-size: 100MB
     max-history: 30
+
+# Environment values
+#jwt:
+#  secret: ${JWT_SECRET:5367566859703373367639792F423F452848284D6251655468576D5A71347437}

@@ -1,10 +1,10 @@
 FROM gradle:8.14-jdk21 AS builder
 WORKDIR /app
 COPY build.gradle settings.gradle* gradle.properties /app/
-RUN gradle dependencies --no-daemon
+RUN gradle dependencies --no-daemon --parallel
 COPY src /app/src
-RUN gradle clean
-RUN gradle bootJar --no-daemon
+RUN gradle clean --parallel
+RUN gradle bootJar --no-daemon --parallel
 
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
@@ -14,4 +14,4 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 RUN mkdir -p /var/log/user-service && chown appuser:appgroup /var/log/user-service
 USER appuser
 EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "app.jar", "-Dspring-boot.run.jvmArguments='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'"]
+ENTRYPOINT ["java", "-jar", "app.jar", "-Xmx200mb", "-Dspring-boot.run.jvmArguments='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'"]
