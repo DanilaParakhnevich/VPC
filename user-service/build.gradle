@@ -1,7 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version "${springBootVersion}"
-    id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
+    id 'io.quarkus' version '3.14.0'
     id 'io.freefair.lombok' version "${lombokVersion}"
     id 'org.flywaydb.flyway' version "${flywayVersion}"
 }
@@ -16,38 +15,68 @@ java {
     }
 }
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
-
 repositories {
     mavenCentral()
 }
 
+ext {
+    quarkusVersion = '3.14.0'
+    mapstructVersion = '1.6.3'
+}
+
 dependencies {
-    //  SPRING BOOT
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    // Quarkus BOM
+    implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:${quarkusVersion}")
 
-    // SECURITY
-    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
+    // Quarkus core
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-hibernate-orm'
+    implementation 'io.quarkus:quarkus-hibernate-validator'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation 'io.quarkus:quarkus-flyway'
 
-    // DATABASE
-    runtimeOnly 'org.postgresql:postgresql'
-    implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-database-postgresql'
-//    implementation 'org.hibernate.orm:hibernate-spatial:6.4.4.Final'
+    // Kafka (SmallRye Reactive Messaging)
+    implementation 'io.quarkus:quarkus-smallrye-reactive-messaging-kafka'
 
-    //  MAPSTRUCT
+    // Security (BCrypt)
+    implementation 'org.springframework.security:spring-security-crypto:6.3.0'
+
+    // Cache
+    implementation 'io.quarkus:quarkus-cache'
+
+    // Jackson + JavaTime
+    implementation 'io.quarkus:quarkus-jackson'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // MapStruct
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    // Metrics & Health
+    implementation 'io.quarkus:quarkus-micrometer'
+    implementation 'io.quarkus:quarkus-smallrye-health'
+
+    // Logging JSON
+    implementation 'io.quarkus:quarkus-logging-json'
+
+    // Common module (ваш общий DTO)
+    implementation project(":common-dto")
+
+    // Test
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+quarkus {
+    // Для нативной компиляции
+    buildNative {
+        additionalBuildArgs = ['--enable-url-protocols=http,https']
+    }
+}
+
+flyway {
+    url = 'jdbc:postgresql://localhost:5432/users'
+    user = 'user'
+    password = 'password'
+    locations = ['filesystem:src/main/resources/db/migration']
 }

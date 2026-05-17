@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
+    id 'io.freefair.lombok' version "${lombokVersion}"
+}
+
+group = 'by.parakhnevich'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = '21'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    //  WEB
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // KAFKA
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // SECURITY
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
+    //  MAPSTRUCT
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    // PARSER
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    // TEST
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // COMMON
+    implementation project(":common-dto")
+}

@@ -3,9 +3,9 @@ services:
     image: confluentinc/cp-kafka:latest
     container_name: broker
     ports:
-      - "9090:9090"
+      - "9092:9092"
     healthcheck:
-      test: kafka-topics --bootstrap-server localhost:9090 --list
+      test: kafka-topics --bootstrap-server localhost:9092 --list
       interval: 30s
       timeout: 10s
       retries: 3
@@ -14,14 +14,45 @@ services:
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_NODE_ID: 1
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:9093
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9090,CONTROLLER://0.0.0.0:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9090
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    networks:
+      - broker-network
+
+  gateway-service:
+    build:
+      context: .
+      dockerfile: gateway-service/Dockerfile
+    container_name: gateway-service
+    depends_on:
+      broker:
+        condition: service_healthy
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: broker:9092
+      SPRING_KAFKA_CONSUMER_GROUP_ID: gateway-group
+      LOG_LEVEL: ${GATEWAY_LOG_LEVEL:-DEBUG}
+      ACTUATOR_USER: ${GATEWAY_ACTUATOR_USER:-admin}
+      ACTUATOR_PASSWORD: ${GATEWAY_ACTUATOR_PASSWORD:-admin123}
+      SERVER_PORT: ${GATEWAY_PORT:-8080}
+    ports:
+      - "8082:8082"
+      - "5006:5005"
+    volumes:
+      - gateway_logs:/var/log/gateway-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - broker-network
 
   users-db:
     image: postgres:16-alpine
@@ -40,10 +71,12 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - media-network
+      - user-network
 
   user-service:
-    build: user-service
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
     container_name: user-service
     depends_on:
       users-db:
@@ -51,21 +84,19 @@ services:
       broker:
         condition: service_healthy
     environment:
-      DB_HOST: ${USERS_DB_HOST:-postgres}
-      DB_NAME: ${USERS_DB_NAME:-users}
-      DB_USER: ${USERS_DB_USER:-postgres}
-      DB_PASSWORD: ${USERS_DB_PASSWORD:-postgres}
-      SHOW_SQL: ${USERS_SHOW_SQL:-false}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: broker:9092
+      SPRING_KAFKA_CONSUMER_GROUP_ID: users-group
+      SPRING_DATASOURCE_HOST: users-db
+      SPRING_DATASOURCE_PORT: 5432
+      SPRING_DATASOURCE_DATABASE: users
+      SPRING_DATASOURCE_USERNAME: ${USERS_DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${USERS_DB_PASSWORD:-postgres}
+      SPRING_JPA_SHOW_SQL: ${USERS_SHOW_SQL:-false}
       LOG_LEVEL: ${USERS_LOG_LEVEL:-DEBUG}
       ACTUATOR_USER: ${USERS_ACTUATOR_USER:-admin}
       ACTUATOR_PASSWORD: ${USERS_ACTUATOR_PASSWORD:-admin123}
-      PORT: ${USERS_PORT:-8081}
-      _JAVA_OPTIONS: >
-        -Xdebug
-        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
       - "5005:5005"
-      - "8081:8081"
     volumes:
       - user_logs:/var/log/user-service
     healthcheck:
@@ -75,12 +106,16 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - media-network
+      - user-network
+      - broker-network
 
 volumes:
   postgres_data:
   user_logs:
+  gateway_logs:
 
 networks:
-  media-network:
+  user-network:
+    driver: bridge
+  broker-network:
     driver: bridge

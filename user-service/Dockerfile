@@ -1,17 +1,25 @@
+# user-service/Dockerfile
 FROM gradle:8.14-jdk21 AS builder
+
 WORKDIR /app
-COPY build.gradle settings.gradle* gradle.properties /app/
-RUN gradle dependencies --no-daemon --parallel
-COPY src /app/src
-RUN gradle clean --parallel
-RUN gradle bootJar --no-daemon --parallel
+
+COPY . .
+
+RUN gradle :user-service:bootJar -x test --no-daemon --parallel
 
 FROM eclipse-temurin:21-jre-jammy
+
 WORKDIR /app
+
 RUN addgroup --system --gid 1000 appgroup && \
     adduser --system --uid 1000 --gid 1000 appuser
-COPY --from=builder /app/build/libs/*.jar app.jar
-RUN mkdir -p /var/log/user-service && chown appuser:appgroup /var/log/user-service
+
+RUN mkdir -p /var/log/user-service && \
+    chown -R appuser:appgroup /var/log/user-service && \
+    chmod 755 /var/log/user-service
+
+COPY --from=builder /app/user-service/build/libs/*.jar app.jar
+
 USER appuser
-EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "app.jar", "-Xmx200mb", "-Dspring-boot.run.jvmArguments='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'"]
+
+ENTRYPOINT ["java", "-Xmx200m", "-jar", "app.jar"]

@@ -2,11 +2,23 @@ spring:
   application:
     name: user-service
 
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:gateway-group}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+
   # Datasource (PostgreSQL)
   datasource:
-    url: jdbc:postgresql://${USERS_DB_HOST:users-db}:5432/${DB_NAME:users}
-    username: ${DB_USER:-user}
-    password: ${DB_PASSWORD:-password}
+    url: jdbc:postgresql://${SPRING_DATASOURCE_HOST:users-db}:${SPRING_DATASOURCE_PORT:5432}/${SPRING_DATASOURCE_DATABASE:users}
+    username: ${SPRING_DATASOURCE_USERNAME:-user}
+    password: ${SPRING_DATASOURCE_PASSWORD:-password}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -28,7 +40,7 @@ spring:
         order_inserts: true
         order_updates: true
         format_sql: false
-    show-sql: ${SHOW_SQL:false}
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
     open-in-view: false
 
   # FLYWAY
@@ -71,5 +83,5 @@ logging:
     max-history: 30
 
 # Environment values
-#jwt:
-#  secret: ${JWT_SECRET:5367566859703373367639792F423F452848284D6251655468576D5A71347437}
+jwt:
+  secret: ${JWT_SECRET:5367566859703373367639792F423F452848284D6251655468576D5A71347437}
