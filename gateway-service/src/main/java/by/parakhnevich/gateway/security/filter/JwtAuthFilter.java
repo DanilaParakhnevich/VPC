@@ -1,7 +1,7 @@
 package by.parakhnevich.gateway.security.filter;
 
 import by.parakhnevich.dto.response.UserResponse;
-import by.parakhnevich.gateway.service.producer.UserCommandProducer;
+import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
@@ -40,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static final Logger LOGGER = LogManager.getLogger(JwtAuthFilter.class);
 
     @Autowired
-    private UserCommandProducer userCommandProducer;
+    private UserRequestProducer userRequestProducer;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -92,6 +92,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private boolean isPublicEndpoint(String path) {
         return path.startsWith("/api/auth/login") ||
                 path.startsWith("/api/auth/register") ||
+                path.startsWith("/api/users/") ||
                 path.startsWith("/public/") ||
                 path.startsWith("/actuator/") ||
                 path.startsWith("/swagger-ui/") ||
@@ -117,29 +118,27 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     
 
     private UserResponse validateTokenViaKafka(String token) throws Exception {
-        CompletableFuture<UserResponse> future = userCommandProducer.validateToken(token);
-        return future.get(3, TimeUnit.SECONDS); // Таймаут 3 секунды
+        CompletableFuture<UserResponse> future = userRequestProducer.validateToken(token);
+        return future.get();
     }
 
     private UsernamePasswordAuthenticationToken createAuthentication(UserResponse validation) {
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(validation.getRole()));
-
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                validation.getUsername(),
-                null,
-                authorities
-        );
-
-        authentication.setDetails(Map.of(
+        //  TODO remove?
+        /* authentication.setDetails(Map.of(
                 "userId", validation.getUserId(),
                 "email", validation.getEmail(),
                 "tokenValid", true
-        ));
+        ));*/
 
-        return authentication;
+        return new UsernamePasswordAuthenticationToken(
+                validation.getUsername(),
+                null,
+                List.of(new SimpleGrantedAuthority(validation.getRole()))
+        );
     }
 
     private Key getSigningKey() {
+        // TODO need to remove?
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 

@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'io.quarkus' version '3.14.0'
+    id 'io.quarkus' version "${quarkusVersion}"
     id 'io.freefair.lombok' version "${lombokVersion}"
     id 'org.flywaydb.flyway' version "${flywayVersion}"
 }
@@ -19,29 +19,29 @@ repositories {
     mavenCentral()
 }
 
-ext {
-    quarkusVersion = '3.14.0'
-    mapstructVersion = '1.6.3'
-}
-
 dependencies {
     // Quarkus BOM
     implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:${quarkusVersion}")
+
+    implementation "io.quarkus:quarkus-rest"
+    implementation "io.quarkus:quarkus-rest-jsonb"
 
     // Quarkus core
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-hibernate-orm'
     implementation 'io.quarkus:quarkus-hibernate-validator'
     implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation "io.quarkus:quarkus-hibernate-orm-panache"
     implementation 'io.quarkus:quarkus-flyway'
 
     // Kafka (SmallRye Reactive Messaging)
-    implementation 'io.quarkus:quarkus-smallrye-reactive-messaging-kafka'
+    implementation 'io.quarkus:quarkus-messaging-kafka'
 
-    // Security (BCrypt)
-    implementation 'org.springframework.security:spring-security-crypto:6.3.0'
+    // Security
+    implementation "org.springframework.security:spring-security-crypto:${springVersion}"
+    implementation "io.quarkus:quarkus-smallrye-jwt"
 
-    // Cache
+    // Cachegf
     implementation 'io.quarkus:quarkus-cache'
 
     // Jackson + JavaTime
@@ -65,13 +65,6 @@ dependencies {
     // Test
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
-}
-
-quarkus {
-    // Для нативной компиляции
-    buildNative {
-        additionalBuildArgs = ['--enable-url-protocols=http,https']
-    }
 }
 
 flyway {

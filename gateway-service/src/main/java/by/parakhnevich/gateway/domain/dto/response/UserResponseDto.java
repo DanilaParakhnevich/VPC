@@ -18,7 +18,7 @@ import java.util.UUID;
 @SuperBuilder
 @NoArgsConstructor
 @Builder
-public class UserResponse {
+public class UserResponseDto {
 
     private UUID id;
     private String username;

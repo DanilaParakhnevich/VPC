@@ -16,10 +16,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthResponse extends UserResponse {
+public class AuthResponseDto extends UserResponseDto {
 
     private String accessToken;
-    private String tokenType;
-    private long expiresIn;
 
 }

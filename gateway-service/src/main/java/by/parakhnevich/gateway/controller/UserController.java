@@ -1,7 +1,7 @@
 package by.parakhnevich.gateway.controller;
 
 import by.parakhnevich.dto.response.UserResponse;
-import by.parakhnevich.gateway.service.producer.UserCommandProducer;
+import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -20,19 +21,23 @@ import java.util.concurrent.CompletableFuture;
 public class UserController {
 
     private static final Logger LOGGER = LogManager.getLogger(UserController.class);
-    private UserCommandProducer userCommandProducer;
+    private UserRequestProducer userRequestProducer;
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUser(@PathVariable UUID userId) {
 
-        CompletableFuture<UserResponse> response = userCommandProducer.getUserById(userId);
+        CompletableFuture<UserResponse> response = userRequestProducer.getUserById(userId);
 
         try {
             UserResponse userResponse = response.get();
-            return ResponseEntity.ok(userResponse);
+            if (UserResponse.ErrorMessage.NOT_FOUND.equals(userResponse.getErrorMessage())) {
+                return ResponseEntity.notFound().build();
+            } else {
+                return ResponseEntity.ok(userResponse);
+            }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 

@@ -1,21 +1,15 @@
 package by.parakhnevich.gateway.security.manager;
 
-import by.parakhnevich.dto.response.UserResponse;
-import by.parakhnevich.gateway.service.producer.UserCommandProducer;
+import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Created by agallochum on 2026-05-16
@@ -24,40 +18,34 @@ import java.util.concurrent.TimeoutException;
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired
-    private UserCommandProducer userCommandProducer;
+    private UserRequestProducer userRequestProducer;
 
     @Override
-    public Authentication authenticate(Authentication authentication)
+    public Authentication authenticate(@NonNull Authentication authentication)
             throws AuthenticationException {
-
-        String username = authentication.getName();
-        String password = authentication.getCredentials().toString();
-
         try {
-            var response = userCommandProducer.authenticate(username, password)
-                    .get(5, TimeUnit.SECONDS); // Блокируемся, пока ждем ответ
+            return new UsernamePasswordAuthenticationToken(
+                    authentication.getName(),
+                    null,
+                    authentication.getAuthorities()
+            );
+//            String password = authentication.getCredentials().toString();
+//            var response = userRequestProducer.authenticate(username, null)
+//                    .get(5, TimeUnit.SECONDS);
+//
+//            if (response.getStatus().equals(UserResponse.Status.OK)) {
+//
+//            } else {
+//                throw new BadCredentialsException(response.getErrorMessage().getMessage());
+//            }
 
-            if (response.getStatus().equals(UserResponse.Status.OK)) {
-                List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(response.getRole()));
-
-                return new UsernamePasswordAuthenticationToken(
-                        response.getUsername(),
-                        null,
-                        authorities
-                );
-            } else {
-                throw new BadCredentialsException(response.getErrorMessage().getMessage());
-            }
-
-        } catch (TimeoutException e) {
-            throw new AuthenticationServiceException("Authentication service timeout");
         } catch (Exception e) {
             throw new AuthenticationServiceException("Authentication failed: " + e.getMessage());
         }
     }
 
     @Override
-    public boolean supports(Class<?> authentication) {
+    public boolean supports(@NonNull Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
 }

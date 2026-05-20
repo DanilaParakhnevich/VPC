@@ -3,25 +3,26 @@ spring:
     name: gateway-service
 
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:broker:9092}
     consumer:
-      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:gateway-group}
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:gateway}
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       auto-offset-reset: earliest
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: by.parakhnevich.dto.*
     producer:
+      client-id: gateway-producer
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
   security:
     user:
       name: ${ACTUATOR_USER:admin}
       password: ${ACTUATOR_PASSWORD:admin123}
-
-kafka:
-  topics:
-    user-request: user-request
-    user-response: user-response
 
 server:
   port: ${SERVER_PORT:8080}
@@ -40,6 +41,8 @@ logging:
     org.springframework.web: INFO
     org.springframework.security: WARN
     org.springframework.kafka: INFO
+#    org.springframework.kafka: TRACE
+#    org.springframework.kafka.listener: TRACE
   pattern:
     console: "%d{ISO8601} %highlight(%-5level) [%thread] %logger{36} - %msg%n"
     file: "%d{ISO8601} %-5level [%thread] %logger{36} - %msg%n"

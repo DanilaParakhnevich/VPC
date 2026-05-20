@@ -1,21 +1,23 @@
 package by.parakhnevich.gateway.controller;
 
-import by.parakhnevich.gateway.domain.dto.request.LoginRequest;
-import by.parakhnevich.gateway.domain.dto.request.SignUpRequest;
-import by.parakhnevich.gateway.domain.dto.response.AuthResponse;
-import by.parakhnevich.gateway.domain.dto.response.SignUpResponse;
-import by.parakhnevich.gateway.service.AuthService;
+import by.parakhnevich.dto.response.UserResponse;
+import by.parakhnevich.gateway.domain.dto.request.LoginRequestDto;
+import by.parakhnevich.gateway.domain.dto.request.SignUpRequestDto;
+import by.parakhnevich.gateway.domain.dto.response.AuthResponseDto;
+import by.parakhnevich.gateway.domain.dto.response.SignUpResponseDto;
+import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
+import by.parakhnevich.gateway.util.mapper.UserMapper;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Created by agallochum on 2026-05-12
@@ -27,31 +29,38 @@ public class AuthController {
 
     private static final Logger LOGGER = LogManager.getLogger(AuthController.class);
 
-    @Autowired
-    private AuthService authService;
+    private UserRequestProducer userRequestProducer;
+    
+    private UserMapper userMapper;
 
-    @PostMapping("/signUp")
-    public ResponseEntity<SignUpResponse> signUp(@RequestBody SignUpRequest signUpRequest) {
+    @PostMapping("/register")
+    public ResponseEntity<SignUpResponseDto> register(@RequestBody SignUpRequestDto signUpRequest) {
+        var register = userRequestProducer.register(signUpRequest.getEmail(), signUpRequest.getUsername(), signUpRequest.getPassword());
+
         try {
-            return ResponseEntity.ok(authService.signUp(signUpRequest));
-        } catch (AuthenticationException e) {
-            LOGGER.error(e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            UserResponse userResponse = register.get();
+            if (userResponse.getStatus().equals(UserResponse.Status.OK)) {
+                return ResponseEntity.ok(userMapper.toSignUpResponse(userResponse));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
+        var login = userRequestProducer.authenticate(loginRequest.getUsername(), loginRequest.getPassword());
+
         try {
-            return ResponseEntity.ok(authService.login(loginRequest));
-        } catch (AuthenticationException e) {
-            LOGGER.error(e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            UserResponse userResponse = login.get();
+            if (userResponse.getStatus().equals(UserResponse.Status.OK)) {
+                return ResponseEntity.ok(userMapper.toAuthResponse(userResponse));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

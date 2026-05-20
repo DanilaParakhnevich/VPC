@@ -12,20 +12,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(
-        name = "users",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_users_email", columnNames = "email"),
-                @UniqueConstraint(name = "uk_users_username", columnNames = "username")
-        },
-        indexes = {
-                @Index(name = "idx_users_email", columnList = "email"),
-                @Index(name = "idx_users_username", columnList = "username"),
-                @Index(name = "idx_users_status", columnList = "status"),
-                @Index(name = "idx_users_created_at", columnList = "created_at"),
-                @Index(name = "idx_users_last_login", columnList = "last_login_at"),
-                @Index(name = "idx_users_status", columnList = "status")
-        })
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -117,4 +104,6 @@ public class User {
     public final int hashCode() {
         return this instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
+
+
 }

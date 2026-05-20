@@ -1,20 +1,11 @@
 package by.parakhnevich.user;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.ConfigurableApplicationContext;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
 
-@SpringBootApplication
-@EnableCaching
+@QuarkusMain
 public class UserServiceApplication {
-    public static void main(String[] args) throws InterruptedException {
-        SpringApplication app = new SpringApplication(UserServiceApplication.class);
-        app.setWebApplicationType(WebApplicationType.NONE);
-        app.run(args);
-
-        // Блокируем main поток
-        Thread.currentThread().join();
+    public static void main(String[] args) {
+        Quarkus.run(args);
     }
 }

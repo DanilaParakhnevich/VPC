@@ -1,5 +1,6 @@
 services:
   broker:
+    profiles: [ "all", "broker" ]
     image: confluentinc/cp-kafka:latest
     container_name: broker
     ports:
@@ -26,6 +27,7 @@ services:
       - broker-network
 
   gateway-service:
+    profiles: [ "all", "gateway", "services" ]
     build:
       context: .
       dockerfile: gateway-service/Dockerfile
@@ -35,18 +37,19 @@ services:
         condition: service_healthy
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: broker:9092
-      SPRING_KAFKA_CONSUMER_GROUP_ID: gateway-group
+      SPRING_KAFKA_CONSUMER_GROUP_ID: gateway
       LOG_LEVEL: ${GATEWAY_LOG_LEVEL:-DEBUG}
       ACTUATOR_USER: ${GATEWAY_ACTUATOR_USER:-admin}
       ACTUATOR_PASSWORD: ${GATEWAY_ACTUATOR_PASSWORD:-admin123}
       SERVER_PORT: ${GATEWAY_PORT:-8080}
     ports:
+      - "8080:8080"
       - "8082:8082"
-      - "5006:5005"
+      - "5005:5005"
     volumes:
       - gateway_logs:/var/log/gateway-service
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -55,6 +58,7 @@ services:
       - broker-network
 
   users-db:
+    profiles: [ "all", "users", "users-db", "services" ]
     image: postgres:16-alpine
     container_name: users-db
     environment:
@@ -66,7 +70,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-users}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-users}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -74,6 +78,7 @@ services:
       - user-network
 
   user-service:
+    profiles: [ "all", "users", "users-service", "services" ]
     build:
       context: .
       dockerfile: user-service/Dockerfile
@@ -84,23 +89,22 @@ services:
       broker:
         condition: service_healthy
     environment:
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: broker:9092
-      SPRING_KAFKA_CONSUMER_GROUP_ID: users-group
-      SPRING_DATASOURCE_HOST: users-db
-      SPRING_DATASOURCE_PORT: 5432
-      SPRING_DATASOURCE_DATABASE: users
-      SPRING_DATASOURCE_USERNAME: ${USERS_DB_USER:-postgres}
-      SPRING_DATASOURCE_PASSWORD: ${USERS_DB_PASSWORD:-postgres}
-      SPRING_JPA_SHOW_SQL: ${USERS_SHOW_SQL:-false}
+      KAFKA_BOOTSTRAP_SERVER: broker:9092
+      DATASOURCE_HOST: users-db
+      DATASOURCE_PORT: 5432
+      DATASOURCE_DATABASE: users
+      DATASOURCE_USERNAME: ${USERS_DB_USER:-postgres}
+      DATASOURCE_PASSWORD: ${USERS_DB_PASSWORD:-postgres}
+      JPA_SHOW_SQL: ${USERS_SHOW_SQL:-false}
       LOG_LEVEL: ${USERS_LOG_LEVEL:-DEBUG}
       ACTUATOR_USER: ${USERS_ACTUATOR_USER:-admin}
       ACTUATOR_PASSWORD: ${USERS_ACTUATOR_PASSWORD:-admin123}
     ports:
-      - "5005:5005"
+      - "5006:5005"
     volumes:
       - user_logs:/var/log/user-service
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
       interval: 30s
       timeout: 5s
       retries: 3

@@ -22,5 +22,6 @@ COPY --from=builder /app/gateway-service/build/libs/*.jar app.jar
 USER appuser
 
 EXPOSE 8080
+EXPOSE 5005
 
-ENTRYPOINT ["java", "-Xmx200m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx200m", "-jar", "app.jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"]
