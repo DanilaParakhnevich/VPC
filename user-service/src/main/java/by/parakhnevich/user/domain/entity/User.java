@@ -48,19 +48,9 @@ public class User {
     private String timezone;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    @Builder.Default
-    private AccountStatus status = AccountStatus.PENDING_VERIFICATION;
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 9)
     @Builder.Default
     private Role role = Role.USER;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "privacy_mode", nullable = false, length = 7)
-    @Builder.Default
-    private AccountPrivacyMode privacyMode = AccountPrivacyMode.PUBLIC;
 
     @Column(name = "is_mfa_enabled")
     @Builder.Default

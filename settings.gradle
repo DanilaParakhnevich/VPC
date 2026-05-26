@@ -1,4 +1,5 @@
 rootProject.name = 'VPC'
 include 'gateway-service'
 include 'user-service'
+include 'music-service'
 include 'common-dto'

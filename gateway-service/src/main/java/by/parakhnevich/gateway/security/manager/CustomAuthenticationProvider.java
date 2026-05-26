@@ -29,15 +29,6 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                     null,
                     authentication.getAuthorities()
             );
-//            String password = authentication.getCredentials().toString();
-//            var response = userRequestProducer.authenticate(username, null)
-//                    .get(5, TimeUnit.SECONDS);
-//
-//            if (response.getStatus().equals(UserResponse.Status.OK)) {
-//
-//            } else {
-//                throw new BadCredentialsException(response.getErrorMessage().getMessage());
-//            }
 
         } catch (Exception e) {
             throw new AuthenticationServiceException("Authentication failed: " + e.getMessage());

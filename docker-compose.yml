@@ -1,6 +1,5 @@
 services:
   broker:
-    profiles: [ "all", "broker" ]
     image: confluentinc/cp-kafka:latest
     container_name: broker
     ports:
@@ -27,7 +26,6 @@ services:
       - broker-network
 
   gateway-service:
-    profiles: [ "all", "gateway", "services" ]
     build:
       context: .
       dockerfile: gateway-service/Dockerfile
@@ -58,7 +56,6 @@ services:
       - broker-network
 
   users-db:
-    profiles: [ "all", "users", "users-db", "services" ]
     image: postgres:16-alpine
     container_name: users-db
     environment:
@@ -78,7 +75,6 @@ services:
       - user-network
 
   user-service:
-    profiles: [ "all", "users", "users-service", "services" ]
     build:
       context: .
       dockerfile: user-service/Dockerfile

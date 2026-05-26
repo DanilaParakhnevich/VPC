@@ -2,7 +2,8 @@ package by.parakhnevich.gateway.kafka.producer;
 
 import by.parakhnevich.dto.request.UserRequest;
 import by.parakhnevich.dto.response.UserResponse;
-import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,13 +26,16 @@ public class UserRequestProducer {
     private static final Logger LOGGER = LogManager.getLogger(UserRequestProducer.class);
 
     @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private final Map<String, CompletableFuture<UserResponse>> pendingRequests = new ConcurrentHashMap<>();
     private final ScheduledExecutorService timeoutScheduler = Executors.newScheduledThreadPool(10);
 
 
-    public CompletableFuture<UserResponse> validateToken(String token) {
+    public CompletableFuture<UserResponse> validateToken(String token) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
 
         UserRequest request = UserRequest.builder()
@@ -44,7 +48,7 @@ public class UserRequestProducer {
         return sendAndReceive(request);
     }
 
-    public CompletableFuture<UserResponse> register(String email, String username, String password) {
+    public CompletableFuture<UserResponse> register(String email, String username, String password) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
 
         UserRequest request = UserRequest.builder()
@@ -58,7 +62,7 @@ public class UserRequestProducer {
         return sendAndReceive(request);
     }
 
-    public CompletableFuture<UserResponse> authenticate(String username, String password) {
+    public CompletableFuture<UserResponse> authenticate(String username, String password) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
 
         UserRequest request = UserRequest.builder()
@@ -71,7 +75,7 @@ public class UserRequestProducer {
         return sendAndReceive(request);
     }
 
-    public CompletableFuture<UserResponse> getUserById(UUID id) {
+    public CompletableFuture<UserResponse> getUserById(UUID id) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
 
         UserRequest request = UserRequest.builder()
@@ -83,7 +87,7 @@ public class UserRequestProducer {
         return sendAndReceive(request);
     }
 
-    public CompletableFuture<UserResponse> getUserByUsername(String username) {
+    public CompletableFuture<UserResponse> getUserByUsername(String username) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
 
         UserRequest request = UserRequest.builder()
@@ -95,7 +99,7 @@ public class UserRequestProducer {
         return sendAndReceive(request);
     }
 
-    public CompletableFuture<UserResponse> updateUser(UUID userId, Map<String, Object> updates) {
+    public CompletableFuture<UserResponse> updateUser(UUID userId, Map<String, Object> updates) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
 
         UserRequest request = UserRequest.builder()
@@ -107,7 +111,7 @@ public class UserRequestProducer {
         return sendAndReceive(request);
     }
 
-    private CompletableFuture<UserResponse> sendAndReceive(UserRequest request) {
+    private CompletableFuture<UserResponse> sendAndReceive(UserRequest request) throws JsonProcessingException {
         CompletableFuture<UserResponse> future = new CompletableFuture<>();
 
         pendingRequests.put(request.getRequestId(), future);
@@ -120,14 +124,13 @@ public class UserRequestProducer {
                 UserResponse timeoutResponse = UserResponse.builder()
                         .requestId(request.getRequestId())
                         .errorMessage(UserResponse.ErrorMessage.TIMEOUT)
-                        .status(UserResponse.Status.ERROR)
                         .build();
 
                 pending.complete(timeoutResponse);
             }
         }, 5, TimeUnit.SECONDS);
 
-        kafkaTemplate.send("users-request", request.getRequestId(), request)
+        kafkaTemplate.send("users-request", request.getRequestId(), objectMapper.writeValueAsString(request))
                 .whenComplete((result, e) -> {
                     if (e != null) {
                         LOGGER.error("Failed to send Kafka message: {}", request.getRequestId(), e);

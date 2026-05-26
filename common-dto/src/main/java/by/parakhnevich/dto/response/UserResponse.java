@@ -4,9 +4,6 @@ import lombok.*;
 
 import java.time.ZonedDateTime;
 
-import static by.parakhnevich.dto.response.UserResponse.ErrorMessage.NONE;
-import static by.parakhnevich.dto.response.UserResponse.Status.OK;
-
 /**
  * Created by agallochum on 2026-05-16
  */
@@ -26,18 +23,11 @@ public class UserResponse {
     private String accessToken;
     private String avatarUrl;
     @Builder.Default
-    private Status status = OK;
-    @Builder.Default
-    private ErrorMessage errorMessage = NONE;
+    private ErrorMessage errorMessage = ErrorMessage.NONE;
     @Builder.Default
     private ZonedDateTime dateTime = ZonedDateTime.now();
     private ZonedDateTime lastLoginAt;
     private ZonedDateTime createdAt;
-
-    public enum Status {
-        OK,
-        ERROR
-    }
 
     @Getter
     public enum ErrorMessage {

@@ -3,13 +3,11 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) NOT NULL,
     email VARCHAR(100) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'USER',
     avatar_url VARCHAR(500),
     bio VARCHAR(500),
     locale VARCHAR(10),
     timezone VARCHAR(50),
-    status VARCHAR(20) NOT NULL DEFAULT 'PENDING_VERIFICATION',
-    role VARCHAR(20) NOT NULL DEFAULT 'USER',
-    privacy_mode VARCHAR(10) NOT NULL DEFAULT 'PUBLIC',
     is_mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     mfa_secret VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -22,14 +20,11 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT uk_users_email UNIQUE (email),
     CONSTRAINT uk_users_username UNIQUE (username),
 
-    CONSTRAINT ck_users_status CHECK (status IN ('PENDING_VERIFICATION', 'ACTIVE', 'SUSPENDED', 'BANNED', 'ARCHIVED')),
-    CONSTRAINT ck_users_role CHECK (role IN ('USER', 'MODERATOR', 'ADMIN')),
-    CONSTRAINT ck_users_privacy_mode CHECK (privacy_mode IN ('PUBLIC', 'PRIVATE'))
+    CONSTRAINT ck_users_role CHECK (role IN ('USER', 'MODERATOR', 'ADMIN'))
 );
 
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_status ON users(status);
 CREATE INDEX idx_users_created_at ON users(created_at);
 CREATE INDEX idx_users_last_login ON users(last_login_at);
 

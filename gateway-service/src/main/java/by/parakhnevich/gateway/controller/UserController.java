@@ -25,10 +25,9 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUser(@PathVariable UUID userId) {
-
-        CompletableFuture<UserResponse> response = userRequestProducer.getUserById(userId);
-
         try {
+            CompletableFuture<UserResponse> response = userRequestProducer.getUserById(userId);
+
             UserResponse userResponse = response.get();
             if (UserResponse.ErrorMessage.NOT_FOUND.equals(userResponse.getErrorMessage())) {
                 return ResponseEntity.notFound().build();

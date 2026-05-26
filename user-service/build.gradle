@@ -39,7 +39,7 @@ dependencies {
 
     // Security
     implementation "org.springframework.security:spring-security-crypto:${springVersion}"
-    implementation "io.quarkus:quarkus-smallrye-jwt"
+    implementation("io.jsonwebtoken:jjwt:${jwtVersion}")
 
     // Cachegf
     implementation 'io.quarkus:quarkus-cache'

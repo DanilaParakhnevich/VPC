@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -27,9 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
-import static by.parakhnevich.dto.response.UserResponse.Status.OK;
 
 /**
  * Created by agallochum on 2026-05-12
@@ -72,7 +69,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
        
             validationResult = validateTokenViaKafka(token);
             
-            if (validationResult.getStatus().equals(OK)) {
+            if (validationResult.getErrorMessage().equals(UserResponse.ErrorMessage.NONE)) {
                 UsernamePasswordAuthenticationToken authentication = createAuthentication(validationResult);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 

@@ -13,6 +13,7 @@ import by.parakhnevich.user.utils.PasswordHasher;
 import by.parakhnevich.user.utils.mapper.UserMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
@@ -23,7 +24,6 @@ import org.jboss.logmanager.Level;
 import org.jboss.logmanager.LogManager;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -39,7 +39,6 @@ public class UserRequestConsumer {
     @Inject
     @Channel("users-response")
     Emitter<String> emitter;
-
     @Inject
     UserRepository userRepository;
     @Inject
@@ -52,9 +51,11 @@ public class UserRequestConsumer {
     UserMapper userMapper;
 
     @Incoming("users-request")
+    @Transactional
     public void consume(String userRequestStr) throws JsonProcessingException {
+        var userRequest = objectMapper.readValue(userRequestStr, UserRequest.class);
+
         try {
-            var userRequest = objectMapper.readValue(userRequestStr, UserRequest.class);
             var user = switch (userRequest.getAction()) {
                 case REGISTER -> register(userRequest);
                 case AUTHENTICATE -> authenticate(userRequest);
@@ -63,23 +64,26 @@ public class UserRequestConsumer {
                 case GET_USER_BY_ID -> getById(userRequest);
                 case GET_USER_BY_USERNAME -> getByUsername(userRequest);
             };
+
+            user.setRequestId(userRequest.getRequestId());
+
             LOGGER.info(userRequest.toString());
             emitter.send(objectMapper.writeValueAsString(user));
         } catch (UserAlreadyExistsException e) {
             LOGGER.log(Level.ERROR, e.getMessage(), e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.ALREADY_EXISTS);
+            sendErrorMessageToEmitter(UserResponse.ErrorMessage.ALREADY_EXISTS, userRequest.getRequestId());
         } catch (BadTokenException e) {
             LOGGER.log(Level.ERROR, e.getMessage(), e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_TOKEN);
+            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_TOKEN, userRequest.getRequestId());
         } catch (BadCredentialsException e) {
             LOGGER.log(Level.ERROR, e.getMessage(), e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_PASSWORD);
+            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_PASSWORD, userRequest.getRequestId());
         }  catch (UserNotFoundException e) {
             LOGGER.log(Level.ERROR, e.getMessage(), e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.NOT_FOUND);
+            sendErrorMessageToEmitter(UserResponse.ErrorMessage.NOT_FOUND, userRequest.getRequestId());
         } catch (JsonProcessingException e) {
             LOGGER.log(Level.ERROR, "Failed to parse user request", e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST);
+            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST, userRequest.getRequestId());
         }
     }
 
@@ -96,8 +100,6 @@ public class UserRequestConsumer {
     }
 
     public UserResponse authenticate(UserRequest userRequest) {
-        var lastLoginInstant = new Date().toInstant();
-
         var user = userRepository.findByUsername(userRequest.getUsername());
 
         if (user.isPresent()) {
@@ -105,10 +107,11 @@ public class UserRequestConsumer {
                 String token = jwtService.generateToken(userRequest.getUsername());
                 UserResponse response = userMapper.toUserResponse(user.get());
 
-                response.setRequestId(userRequest.getRequestId());
-                response.setAccessToken(token);
+                var updateTime = ZonedDateTime.now();
+                userRepository.updateLastLoginAt(user.get().getUsername(), updateTime);
 
-                userRepository.updateLastLoginAt(user.get().getUsername(), ZonedDateTime.from(lastLoginInstant));
+                response.setAccessToken(token);
+                response.setLastLoginAt(updateTime);
 
                 return response;
             } else {
@@ -156,11 +159,11 @@ public class UserRequestConsumer {
         }
     }
 
-    private void sendErrorMessageToEmitter(UserResponse.ErrorMessage errorMessage) throws JsonProcessingException {
+    private void sendErrorMessageToEmitter(UserResponse.ErrorMessage errorMessage, String requestId) throws JsonProcessingException {
         emitter.send(objectMapper.writeValueAsString(
                 UserResponse.builder()
+                        .requestId(requestId)
                         .errorMessage(errorMessage)
-                        .status(UserResponse.Status.ERROR)
                         .build()));
     }
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.concurrent.CompletableFuture;
+import static by.parakhnevich.dto.response.UserResponse.ErrorMessage.*;
 
 /**
  * Created by agallochum on 2026-05-12
@@ -35,12 +35,14 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<SignUpResponseDto> register(@RequestBody SignUpRequestDto signUpRequest) {
-        var register = userRequestProducer.register(signUpRequest.getEmail(), signUpRequest.getUsername(), signUpRequest.getPassword());
-
         try {
+            var register = userRequestProducer.register(signUpRequest.getEmail(), signUpRequest.getUsername(), signUpRequest.getPassword());
+
             UserResponse userResponse = register.get();
-            if (userResponse.getStatus().equals(UserResponse.Status.OK)) {
+            if (userResponse.getErrorMessage().equals(NONE)) {
                 return ResponseEntity.ok(userMapper.toSignUpResponse(userResponse));
+            } else if (userResponse.getErrorMessage().equals(ALREADY_EXISTS)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
@@ -51,11 +53,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
-        var login = userRequestProducer.authenticate(loginRequest.getUsername(), loginRequest.getPassword());
-
         try {
+            var login = userRequestProducer.authenticate(loginRequest.getUsername(), loginRequest.getPassword());
+
             UserResponse userResponse = login.get();
-            if (userResponse.getStatus().equals(UserResponse.Status.OK)) {
+            if (userResponse.getErrorMessage().equals(NONE)) {
                 return ResponseEntity.ok(userMapper.toAuthResponse(userResponse));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
