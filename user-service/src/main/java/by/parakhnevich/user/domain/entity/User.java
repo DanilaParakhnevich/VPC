@@ -21,10 +21,10 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", updatable = false, nullable = false)
     @EqualsAndHashCode.Include
-    private UUID id;
+    private Long id;
 
     @Column(name = "username", nullable = false, length = 50)
     private String username;

@@ -42,12 +42,12 @@ services:
       SERVER_PORT: ${GATEWAY_PORT:-8080}
     ports:
       - "8080:8080"
-      - "8082:8082"
+      - "8081:8081"
       - "5005:5005"
     volumes:
       - gateway_logs:/var/log/gateway-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -59,15 +59,15 @@ services:
     image: postgres:16-alpine
     container_name: users-db
     environment:
-      POSTGRES_DB: ${DB_NAME:-users}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${USERS_DB_NAME:-users}
+      POSTGRES_USER: ${USERS_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${USERS_DB_PASSWORD:-postgres}
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - user_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-users}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${USERS_DB_USER:-postgres} -d ${USERS_DB_NAME:-users}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -90,13 +90,14 @@ services:
       DATASOURCE_PORT: 5432
       DATASOURCE_DATABASE: users
       DATASOURCE_USERNAME: ${USERS_DB_USER:-postgres}
-      DATASOURCE_PASSWORD: ${USERS_DB_PASSWORD:-postgres}
+      DATASOURCE_PASSWORD: ${USERS_DB_PASSWORD:-1234}
       JPA_SHOW_SQL: ${USERS_SHOW_SQL:-false}
       LOG_LEVEL: ${USERS_LOG_LEVEL:-DEBUG}
       ACTUATOR_USER: ${USERS_ACTUATOR_USER:-admin}
       ACTUATOR_PASSWORD: ${USERS_ACTUATOR_PASSWORD:-admin123}
     ports:
       - "5006:5005"
+      - "8082:8081"
     volumes:
       - user_logs:/var/log/user-service
     healthcheck:
@@ -109,13 +110,72 @@ services:
       - user-network
       - broker-network
 
+  music-db:
+    image: postgres:16-alpine
+    container_name: music-db
+    environment:
+      POSTGRES_DB: ${MUSIC_DB_NAME:-music}
+      POSTGRES_USER: ${MUSIC_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${MUSIC_DB_PASSWORD:-1234}
+    ports:
+      - "5433:5432"
+    volumes:
+      - music_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${MUSIC_DB_USER:-postgres} -d ${MUSIC_DB_NAME:-music}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - music-network
+
+  music-service:
+    build:
+      context: .
+      dockerfile: music-service/Dockerfile
+    container_name: music-service
+    depends_on:
+      music-db:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVER: broker:9092
+      DATASOURCE_HOST: music-db
+      DATASOURCE_PORT: 5432
+      DATASOURCE_DATABASE: music
+      DATASOURCE_USERNAME: ${MUSIC_DB_USER:-postgres}
+      DATASOURCE_PASSWORD: ${MUSIC_DB_PASSWORD:-1234}
+      JPA_SHOW_SQL: ${MUSIC_SHOW_SQL:-false}
+      LOG_LEVEL: ${MUSIC_LOG_LEVEL:-DEBUG}
+      ACTUATOR_USER: ${MUSIC_ACTUATOR_USER:-admin}
+      ACTUATOR_PASSWORD: ${MUSIC_ACTUATOR_PASSWORD:-admin123}
+    ports:
+      - "5007:5005"
+      - "8083:8081"
+    volumes:
+      - music_logs:/var/log/music-service
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - music-network
+      - broker-network
+
 volumes:
-  postgres_data:
+  user_postgres_data:
+  music_postgres_data:
   user_logs:
+  music_logs:
   gateway_logs:
 
 networks:
   user-network:
+    driver: bridge
+  music-network:
     driver: bridge
   broker-network:
     driver: bridge
