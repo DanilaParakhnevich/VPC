@@ -10,6 +10,9 @@ import org.hibernate.proxy.HibernateProxy;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
+/**
+ * Created by agallochum on 2026-05-18
+ */
 @Entity
 @Table(name = "users")
 @Getter

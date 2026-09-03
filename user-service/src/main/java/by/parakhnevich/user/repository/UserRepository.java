@@ -7,6 +7,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
+/**
+ * Created by agallochum on 2026-05-18
+ */
 @ApplicationScoped
 public class UserRepository implements PanacheRepositoryBase<User, Long> {
 

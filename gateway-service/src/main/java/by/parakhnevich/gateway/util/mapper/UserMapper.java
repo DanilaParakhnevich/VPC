@@ -5,6 +5,9 @@ import by.parakhnevich.gateway.domain.dto.response.AuthResponseDto;
 import by.parakhnevich.gateway.domain.dto.response.SignUpResponseDto;
 import org.mapstruct.Mapper;
 
+/**
+ * Created by agallochum on 2026-05-12
+ */
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 

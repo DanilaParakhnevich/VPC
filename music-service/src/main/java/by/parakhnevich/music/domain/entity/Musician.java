@@ -6,6 +6,9 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Created by agallochum on 2026-09-02
+ */
 @Entity
 @Table(name = "musicians")
 @Getter

@@ -5,9 +5,9 @@ import lombok.*;
 
 import java.util.List;
 
-
-// ALBUM, SINGLE OR EP, COLLECTION
-
+/**
+ * Created by agallochum on 2026-09-02
+ */
 @Entity
 @Table(name = "tracks")
 @Getter

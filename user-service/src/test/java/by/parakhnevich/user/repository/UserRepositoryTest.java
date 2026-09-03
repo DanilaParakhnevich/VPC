@@ -9,6 +9,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Created by agallochum on 2026-09-03
+ */
 @QuarkusTest
 class UserRepositoryTest {
 

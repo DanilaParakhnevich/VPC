@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.util.List;
 
+/**
+ * Created by agallochum on 2026-09-02
+ */
 @Entity
 @Table(name = "genres")
 @Getter

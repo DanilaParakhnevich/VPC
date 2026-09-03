@@ -7,6 +7,9 @@ import lombok.Setter;
 import lombok.ToString;
 import java.time.LocalDateTime;
 
+/**
+ * Created by agallochum on 2026-09-02
+ */
 @Getter
 @Setter
 @NoArgsConstructor // Обязательно для JPA

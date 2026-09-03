@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * Created by agallochum on 2026-09-02
+ */
 @Configuration
 public class ConstantConfig {
     @Bean
