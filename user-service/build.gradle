@@ -66,6 +66,7 @@ dependencies {
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.quarkus:quarkus-junit5-mockito'
     testImplementation 'io.quarkus:quarkus-test-h2'
+    testImplementation 'org.awaitility:awaitility:4.3.0'
     testImplementation("io.smallrye.reactive:smallrye-reactive-messaging-in-memory")
     testImplementation 'org.assertj:assertj-core:3.24.2'
 }
