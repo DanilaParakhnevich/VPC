@@ -64,7 +64,10 @@ dependencies {
 
     // Test
     testImplementation 'io.quarkus:quarkus-junit5'
-    testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'io.quarkus:quarkus-junit5-mockito'
+    testImplementation 'io.quarkus:quarkus-test-h2'
+    testImplementation("io.smallrye.reactive:smallrye-reactive-messaging-in-memory")
+    testImplementation 'org.assertj:assertj-core:3.24.2'
 }
 
 flyway {
