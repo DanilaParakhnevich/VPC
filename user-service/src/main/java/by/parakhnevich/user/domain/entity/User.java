@@ -9,7 +9,6 @@ import org.hibernate.proxy.HibernateProxy;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
-import java.util.UUID;
 
 @Entity
 @Table(name = "users")

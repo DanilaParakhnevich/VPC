@@ -18,6 +18,16 @@ public class Band extends BaseEntity {
 
     private String description;
 
+    private String geo;
+
+    @ManyToMany
+    @JoinTable(
+            name = "band_genre",
+            joinColumns = @JoinColumn(name = "band_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<Musician> musicians;
+
     @ManyToMany
     @JoinTable(
             name = "band_genre",

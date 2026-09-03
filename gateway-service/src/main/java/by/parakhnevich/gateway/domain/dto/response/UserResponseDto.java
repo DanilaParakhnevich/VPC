@@ -20,7 +20,7 @@ import java.util.UUID;
 @Builder
 public class UserResponseDto {
 
-    private UUID id;
+    private Long id;
     private String username;
     private String email;
     private String avatarUrl;

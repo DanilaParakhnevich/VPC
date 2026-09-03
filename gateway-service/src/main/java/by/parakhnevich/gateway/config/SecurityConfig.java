@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -40,6 +39,9 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
+    @Autowired
+    private List<String> publicUris;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -49,12 +51,12 @@ public class SecurityConfig {
                         })
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
-                        .requestMatchers("/api/users/*").permitAll()
-                        .requestMatchers("/error").permitAll()
-                        .anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> {
+                            auth
+                                    .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
+                                    .requestMatchers(publicUris.toArray(new String[0])).permitAll()
+                                    .anyRequest().authenticated();
+                        }
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

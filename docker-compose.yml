@@ -40,6 +40,7 @@ services:
       ACTUATOR_USER: ${GATEWAY_ACTUATOR_USER:-admin}
       ACTUATOR_PASSWORD: ${GATEWAY_ACTUATOR_PASSWORD:-admin123}
       SERVER_PORT: ${GATEWAY_PORT:-8080}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
       - "8080:8080"
       - "8081:8081"
@@ -95,6 +96,7 @@ services:
       LOG_LEVEL: ${USERS_LOG_LEVEL:-DEBUG}
       ACTUATOR_USER: ${USERS_ACTUATOR_USER:-admin}
       ACTUATOR_PASSWORD: ${USERS_ACTUATOR_PASSWORD:-admin123}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
       - "5006:5005"
       - "8082:8081"
@@ -150,6 +152,7 @@ services:
       LOG_LEVEL: ${MUSIC_LOG_LEVEL:-DEBUG}
       ACTUATOR_USER: ${MUSIC_ACTUATOR_USER:-admin}
       ACTUATOR_PASSWORD: ${MUSIC_ACTUATOR_PASSWORD:-admin123}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
       - "5007:5005"
       - "8083:8081"

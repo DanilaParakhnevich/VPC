@@ -1,4 +1,4 @@
-package by.parakhnevich.dto.response;
+package by.parakhnevich.dto.response.user;
 
 import lombok.*;
 
@@ -31,18 +31,22 @@ public class UserResponse {
 
     @Getter
     public enum ErrorMessage {
-        BAD_TOKEN("${bad_token}"),
-        NOT_FOUND("${user_not_found}"),
-        BAD_PASSWORD("${user_bad_password}"),
-        BAD_REQUEST("$(bad_request)"),
-        ALREADY_EXISTS("$(already_exists)"),
-        TIMEOUT("${timeout}"),
-        NONE("${ok}");
+        BAD_TOKEN(401),
+        NOT_FOUND(404),
+        BAD_PASSWORD(400),
+        BAD_REQUEST(400),
+        ALREADY_EXISTS(409),
+        TIMEOUT(408),
+        NONE(200);
 
-        private final String message;
+        private final int code;
 
-        ErrorMessage(String message) {
-            this.message = message;
+        ErrorMessage(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
         }
     }
 }

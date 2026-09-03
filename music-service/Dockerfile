@@ -20,4 +20,4 @@ COPY --from=builder /app/music-service/build/quarkus-app /app
 USER appuser
 
 EXPOSE 8081
-ENTRYPOINT ["java", "-Xmx200m", "-jar", "quarkus-run.jar"]
+ENTRYPOINT ["java", "-jar", "quarkus-run.jar"]

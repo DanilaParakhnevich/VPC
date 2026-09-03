@@ -6,10 +6,9 @@ import io.quarkus.panache.common.Parameters;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.ZonedDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @ApplicationScoped
-public class UserRepository implements PanacheRepositoryBase<User, UUID> {
+public class UserRepository implements PanacheRepositoryBase<User, Long> {
 
     public Optional<User> findByEmail(String email) {
         return find("email", email).firstResultOptional();

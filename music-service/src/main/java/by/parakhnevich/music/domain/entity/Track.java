@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.util.List;
 
+
+// ALBUM, SINGLE OR EP, COLLECTION
+
 @Entity
 @Table(name = "tracks")
 @Getter

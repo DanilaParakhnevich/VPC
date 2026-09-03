@@ -1,7 +1,7 @@
 package by.parakhnevich.user.kafka.consumer;
 
-import by.parakhnevich.dto.request.UserRequest;
-import by.parakhnevich.dto.response.UserResponse;
+import by.parakhnevich.dto.request.user.AuthRequest;
+import by.parakhnevich.dto.response.user.UserResponse;
 import by.parakhnevich.user.kafka.exception.BadCredentialsException;
 import by.parakhnevich.user.kafka.exception.BadTokenException;
 import by.parakhnevich.user.kafka.exception.UserAlreadyExistsException;
@@ -24,7 +24,6 @@ import org.jboss.logmanager.Level;
 import org.jboss.logmanager.LogManager;
 
 import java.time.ZonedDateTime;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -53,7 +52,7 @@ public class UserRequestConsumer {
     @Incoming("users-request")
     @Transactional
     public void consume(String userRequestStr) throws JsonProcessingException {
-        var userRequest = objectMapper.readValue(userRequestStr, UserRequest.class);
+        var userRequest = objectMapper.readValue(userRequestStr, AuthRequest.class);
 
         try {
             var user = switch (userRequest.getAction()) {
@@ -84,27 +83,31 @@ public class UserRequestConsumer {
         } catch (JsonProcessingException e) {
             LOGGER.log(Level.ERROR, "Failed to parse user request", e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST, userRequest.getRequestId());
+        } catch (Exception e) {
+            LOGGER.log(Level.ERROR, "Failed to parse user request", e);
+            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST, userRequest.getRequestId());
         }
+
     }
 
-    public UserResponse register(UserRequest userRequest) {
-        var user = userMapper.toUser(userRequest);
-        user.setPassword(passwordHasher.hash(userRequest.getPassword()));
+    public UserResponse register(AuthRequest authRequest) {
+        var user = userMapper.toUser(authRequest);
+        user.setPassword(passwordHasher.hash(authRequest.getPassword()));
         if (userRepository.findByUsername(user.getUsername()).isPresent()
                 || userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException();
         } else {
             userRepository.persist(user);
-            return authenticate(userRequest);
+            return authenticate(authRequest);
         }
     }
 
-    public UserResponse authenticate(UserRequest userRequest) {
-        var user = userRepository.findByUsername(userRequest.getUsername());
+    public UserResponse authenticate(AuthRequest authRequest) {
+        var user = userRepository.findByUsername(authRequest.getUsername());
 
         if (user.isPresent()) {
-            if (passwordHasher.matches(userRequest.getPassword(), user.get().getPassword())) {
-                String token = jwtService.generateToken(userRequest.getUsername());
+            if (passwordHasher.matches(authRequest.getPassword(), user.get().getPassword())) {
+                String token = jwtService.generateToken(authRequest.getUsername());
                 UserResponse response = userMapper.toUserResponse(user.get());
 
                 var updateTime = ZonedDateTime.now();
@@ -122,14 +125,14 @@ public class UserRequestConsumer {
         }
     }
 
-    public UserResponse update(UserRequest userRequest) {
+    public UserResponse update(AuthRequest authRequest) {
         throw new UnsupportedOperationException();
     }
 
-    public UserResponse validate(UserRequest userRequest) {
-        var user = userRepository.findByUsername(jwtService.extractUsername(userRequest.getToken()));
+    public UserResponse validate(AuthRequest authRequest) {
+        var user = userRepository.findByUsername(jwtService.extractUsername(authRequest.getToken()));
         if (user.isPresent()) {
-            if (jwtService.validateToken(userRequest.getToken(), user.get())) {
+            if (jwtService.validateToken(authRequest.getToken(), user.get())) {
                 return userMapper.toUserResponse(user.get());
             } else {
                 throw new BadTokenException();
@@ -139,8 +142,8 @@ public class UserRequestConsumer {
         }
     }
 
-    public UserResponse getById(UserRequest userRequest) {
-        var user = userRepository.findByIdOptional(UUID.fromString(userRequest.getUserId()));
+    public UserResponse getById(AuthRequest authRequest) {
+        var user = userRepository.findByIdOptional(Long.parseLong(authRequest.getUserId()));
 
         if (user.isPresent()) {
             return userMapper.toUserResponse(user.get());
@@ -149,8 +152,8 @@ public class UserRequestConsumer {
         }
     }
 
-    public UserResponse getByUsername(UserRequest userRequest) {
-        var user = userRepository.findByUsername(userRequest.getUsername());
+    public UserResponse getByUsername(AuthRequest authRequest) {
+        var user = userRepository.findByUsername(authRequest.getUsername());
 
         if (user.isPresent()) {
             return userMapper.toUserResponse(user.get());

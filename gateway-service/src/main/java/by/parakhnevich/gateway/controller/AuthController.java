@@ -1,6 +1,6 @@
 package by.parakhnevich.gateway.controller;
 
-import by.parakhnevich.dto.response.UserResponse;
+import by.parakhnevich.dto.response.user.UserResponse;
 import by.parakhnevich.gateway.domain.dto.request.LoginRequestDto;
 import by.parakhnevich.gateway.domain.dto.request.SignUpRequestDto;
 import by.parakhnevich.gateway.domain.dto.response.AuthResponseDto;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static by.parakhnevich.dto.response.UserResponse.ErrorMessage.*;
+import static by.parakhnevich.dto.response.user.UserResponse.ErrorMessage.*;
 
 /**
  * Created by agallochum on 2026-05-12
