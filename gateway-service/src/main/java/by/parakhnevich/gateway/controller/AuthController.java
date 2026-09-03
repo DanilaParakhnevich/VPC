@@ -7,6 +7,10 @@ import by.parakhnevich.gateway.domain.dto.response.AuthResponseDto;
 import by.parakhnevich.gateway.domain.dto.response.SignUpResponseDto;
 import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
 import by.parakhnevich.gateway.util.mapper.UserMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,6 +37,12 @@ public class AuthController {
     
     private UserMapper userMapper;
 
+    @Operation(summary = "Register user", description = "Returns user data all an error")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ok"),
+            @ApiResponse(responseCode = "400", description = "User not found or bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal error")
+    })
     @PostMapping("/register")
     public ResponseEntity<SignUpResponseDto> register(@RequestBody SignUpRequestDto signUpRequest) {
         try {
@@ -41,16 +51,20 @@ public class AuthController {
             UserResponse userResponse = register.get();
             if (userResponse.getErrorMessage().equals(NONE)) {
                 return ResponseEntity.ok(userMapper.toSignUpResponse(userResponse));
-            } else if (userResponse.getErrorMessage().equals(ALREADY_EXISTS)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                return ResponseEntity.status(userResponse.getErrorMessage().getCode()).build();
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
+    @Operation(summary = "Authenticate user", description = "Authenticate user saving JWT token in server. Returns authenticated user with token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ok"),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal error")
+    })
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
         try {
@@ -60,7 +74,7 @@ public class AuthController {
             if (userResponse.getErrorMessage().equals(NONE)) {
                 return ResponseEntity.ok(userMapper.toAuthResponse(userResponse));
             } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                return ResponseEntity.status(userResponse.getErrorMessage().getCode()).build();
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

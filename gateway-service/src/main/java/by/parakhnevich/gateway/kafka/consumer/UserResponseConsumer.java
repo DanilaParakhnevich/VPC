@@ -22,37 +22,31 @@ public class UserResponseConsumer {
 
     private static final Logger LOGGER = LogManager.getLogger(UserResponseConsumer.class);
 
-    private UserRequestProducer userRequestProducer;
-
-    private ObjectMapper objectMapper;
+    private final UserRequestProducer userRequestProducer;
+    private final ObjectMapper objectMapper;
 
     @RetryableTopic(
             attempts = "3",
             backOff = @BackOff(delay = 2000)
     )
     @KafkaListener(
-            topics = "users-response",
-            groupId = "gateway"
+            topics = "users-response"
     )
     public void handleResponse(String responseStr) {
         try {
-            var response = objectMapper.readValue(responseStr, UserResponse.class);
-
-            LOGGER.info(response.toString());
+            UserResponse response = objectMapper.readValue(responseStr, UserResponse.class);
             LOGGER.info("Received response for request: {}, success: {}",
                     response.getRequestId(),
                     response.getErrorMessage().equals(UserResponse.ErrorMessage.NONE));
 
             CompletableFuture<UserResponse> future = userRequestProducer.getPendingRequests().remove(response.getRequestId());
-
             if (future != null) {
                 future.complete(response);
             } else {
                 LOGGER.warn("No pending request found for response: {}", response.getRequestId());
             }
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error processing response: {}", e.getMessage(), e);
         }
     }
-
 }

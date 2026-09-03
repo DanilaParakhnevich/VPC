@@ -3,7 +3,6 @@ package by.parakhnevich.user.kafka.consumer;
 import by.parakhnevich.dto.request.user.AuthRequest;
 import by.parakhnevich.dto.response.user.UserResponse;
 import by.parakhnevich.user.kafka.exception.BadCredentialsException;
-import by.parakhnevich.user.kafka.exception.BadTokenException;
 import by.parakhnevich.user.kafka.exception.UserAlreadyExistsException;
 import by.parakhnevich.user.kafka.exception.UserNotFoundException;
 import by.parakhnevich.user.repository.UserRepository;
@@ -58,7 +57,6 @@ public class UserRequestConsumer {
             var user = switch (userRequest.getAction()) {
                 case REGISTER -> register(userRequest);
                 case AUTHENTICATE -> authenticate(userRequest);
-                case VALIDATE -> validate(userRequest);
                 case UPDATE_USER -> update(userRequest);
                 case GET_USER_BY_ID -> getById(userRequest);
                 case GET_USER_BY_USERNAME -> getByUsername(userRequest);
@@ -66,14 +64,11 @@ public class UserRequestConsumer {
 
             user.setRequestId(userRequest.getRequestId());
 
-            LOGGER.info(userRequest.toString());
+            LOGGER.info("Sending response for request: " + userRequest.getRequestId());
             emitter.send(objectMapper.writeValueAsString(user));
         } catch (UserAlreadyExistsException e) {
             LOGGER.log(Level.ERROR, e.getMessage(), e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.ALREADY_EXISTS, userRequest.getRequestId());
-        } catch (BadTokenException e) {
-            LOGGER.log(Level.ERROR, e.getMessage(), e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_TOKEN, userRequest.getRequestId());
         } catch (BadCredentialsException e) {
             LOGGER.log(Level.ERROR, e.getMessage(), e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_PASSWORD, userRequest.getRequestId());
@@ -84,21 +79,25 @@ public class UserRequestConsumer {
             LOGGER.log(Level.ERROR, "Failed to parse user request", e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST, userRequest.getRequestId());
         } catch (Exception e) {
-            LOGGER.log(Level.ERROR, "Failed to parse user request", e);
+            LOGGER.log(Level.ERROR, "Unexpected error", e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST, userRequest.getRequestId());
         }
 
     }
 
     public UserResponse register(AuthRequest authRequest) {
-        var user = userMapper.toUser(authRequest);
-        user.setPassword(passwordHasher.hash(authRequest.getPassword()));
-        if (userRepository.findByUsername(user.getUsername()).isPresent()
-                || userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new UserAlreadyExistsException();
-        } else {
-            userRepository.persist(user);
-            return authenticate(authRequest);
+        try {
+            var user = userMapper.toUser(authRequest);
+            user.setPassword(passwordHasher.hash(authRequest.getPassword()));
+            if (userRepository.findByUsername(user.getUsername()).isPresent()
+                    || userRepository.findByEmail(user.getEmail()).isPresent()) {
+                throw new UserAlreadyExistsException();
+            } else {
+                userRepository.persist(user);
+                return authenticate(authRequest);
+            }
+        } catch (UserNotFoundException e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -109,13 +108,10 @@ public class UserRequestConsumer {
             if (passwordHasher.matches(authRequest.getPassword(), user.get().getPassword())) {
                 String token = jwtService.generateToken(authRequest.getUsername());
                 UserResponse response = userMapper.toUserResponse(user.get());
-
                 var updateTime = ZonedDateTime.now();
                 userRepository.updateLastLoginAt(user.get().getUsername(), updateTime);
-
                 response.setAccessToken(token);
                 response.setLastLoginAt(updateTime);
-
                 return response;
             } else {
                 throw new BadCredentialsException();
@@ -126,25 +122,11 @@ public class UserRequestConsumer {
     }
 
     public UserResponse update(AuthRequest authRequest) {
-        throw new UnsupportedOperationException();
-    }
-
-    public UserResponse validate(AuthRequest authRequest) {
-        var user = userRepository.findByUsername(jwtService.extractUsername(authRequest.getToken()));
-        if (user.isPresent()) {
-            if (jwtService.validateToken(authRequest.getToken(), user.get())) {
-                return userMapper.toUserResponse(user.get());
-            } else {
-                throw new BadTokenException();
-            }
-        } else {
-            throw new UserNotFoundException();
-        }
+        throw new UnsupportedOperationException("Update not implemented yet");
     }
 
     public UserResponse getById(AuthRequest authRequest) {
         var user = userRepository.findByIdOptional(Long.parseLong(authRequest.getUserId()));
-
         if (user.isPresent()) {
             return userMapper.toUserResponse(user.get());
         } else {
@@ -154,7 +136,6 @@ public class UserRequestConsumer {
 
     public UserResponse getByUsername(AuthRequest authRequest) {
         var user = userRepository.findByUsername(authRequest.getUsername());
-
         if (user.isPresent()) {
             return userMapper.toUserResponse(user.get());
         } else {

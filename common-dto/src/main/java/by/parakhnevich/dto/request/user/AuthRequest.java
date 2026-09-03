@@ -29,7 +29,6 @@ public class AuthRequest {
     public enum Action {
         REGISTER,
         AUTHENTICATE,
-        VALIDATE,
         GET_USER_BY_USERNAME,
         UPDATE_USER,
         GET_USER_BY_ID

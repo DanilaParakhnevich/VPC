@@ -1,10 +1,8 @@
 package by.parakhnevich.user.utils;
 
-import by.parakhnevich.user.domain.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -22,21 +20,12 @@ import java.util.function.Function;
 @ApplicationScoped
 public class JwtService {
 
-    @ConfigProperty(name ="jwt.secret")
+    @ConfigProperty(name = "jwt.secret")
     String SECRET;
 
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, username);
-    }
-
-    public boolean validateToken(String token, User user) {
-        final String username = extractUsername(token);
-        return username.equals(user.getUsername()) && !isTokenExpired(token);
-    }
-
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
     }
 
     public String extractUsername(String token) {
@@ -49,10 +38,6 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-    }
-
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -73,7 +58,6 @@ public class JwtService {
     }
 
     private Key getSignKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(SECRET.getBytes());
     }
 }

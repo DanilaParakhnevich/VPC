@@ -2,6 +2,9 @@ package by.parakhnevich.gateway.controller;
 
 import by.parakhnevich.dto.response.user.UserResponse;
 import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,6 +27,12 @@ public class UserController {
     private static final Logger LOGGER = LogManager.getLogger(UserController.class);
     private UserRequestProducer userRequestProducer;
 
+    @Operation(summary = "Get user by id", description = "Returns user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ok"),
+            @ApiResponse(responseCode = "400", description = "User not found or bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal error")
+    })
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUser(@PathVariable Long userId) {
         try {
@@ -31,11 +40,6 @@ public class UserController {
 
             UserResponse userResponse = response.get();
             return ResponseEntity.status(userResponse.getErrorMessage().getCode()).body(userResponse);
-//            if (UserResponse.ErrorMessage.NOT_FOUND.equals(userResponse.getErrorMessage())) {
-//                return ResponseEntity.notFound().build();
-//            } else {
-//                return ResponseEntity.ok(userResponse);
-//            }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             return ResponseEntity.internalServerError().build();

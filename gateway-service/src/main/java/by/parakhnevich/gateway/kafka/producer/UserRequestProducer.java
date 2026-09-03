@@ -34,23 +34,8 @@ public class UserRequestProducer {
     private final Map<String, CompletableFuture<UserResponse>> pendingRequests = new ConcurrentHashMap<>();
     private final ScheduledExecutorService timeoutScheduler = Executors.newScheduledThreadPool(10);
 
-
-    public CompletableFuture<UserResponse> validateToken(String token) throws JsonProcessingException {
-        String requestId = UUID.randomUUID().toString();
-
-        AuthRequest request = AuthRequest.builder()
-                .requestId(requestId)
-                .token(token)
-                .action(AuthRequest.Action.VALIDATE)
-                .dateTime(ZonedDateTime.now())
-                .build();
-
-        return sendAndReceive(request);
-    }
-
     public CompletableFuture<UserResponse> register(String email, String username, String password) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-
         AuthRequest request = AuthRequest.builder()
                 .requestId(requestId)
                 .email(email)
@@ -58,50 +43,42 @@ public class UserRequestProducer {
                 .password(password)
                 .action(AuthRequest.Action.REGISTER)
                 .build();
-
         return sendAndReceive(request);
     }
 
     public CompletableFuture<UserResponse> authenticate(String username, String password) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-
         AuthRequest request = AuthRequest.builder()
                 .requestId(requestId)
                 .username(username)
                 .password(password)
                 .action(AuthRequest.Action.AUTHENTICATE)
                 .build();
-
         return sendAndReceive(request);
     }
 
     public CompletableFuture<UserResponse> getUserById(Long id) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-
         AuthRequest request = AuthRequest.builder()
                 .requestId(requestId)
                 .userId(String.valueOf(id))
                 .action(AuthRequest.Action.GET_USER_BY_ID)
                 .build();
-
         return sendAndReceive(request);
     }
 
     public CompletableFuture<UserResponse> getUserByUsername(String username) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-
         AuthRequest request = AuthRequest.builder()
                 .requestId(requestId)
                 .username(username)
                 .action(AuthRequest.Action.GET_USER_BY_USERNAME)
                 .build();
-
         return sendAndReceive(request);
     }
 
     public CompletableFuture<UserResponse> updateUser(Long userId, Map<String, Object> updates) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-
         AuthRequest request = AuthRequest.builder()
                 .requestId(requestId)
                 .userId(userId.toString())
@@ -111,21 +88,18 @@ public class UserRequestProducer {
         return sendAndReceive(request);
     }
 
-    private CompletableFuture<UserResponse>     sendAndReceive(AuthRequest request) throws JsonProcessingException {
+    private CompletableFuture<UserResponse> sendAndReceive(AuthRequest request) throws JsonProcessingException {
         CompletableFuture<UserResponse> future = new CompletableFuture<>();
-
         pendingRequests.put(request.getRequestId(), future);
 
         timeoutScheduler.schedule(() -> {
             CompletableFuture<UserResponse> pending = pendingRequests.remove(request.getRequestId());
             if (pending != null && !pending.isDone()) {
                 LOGGER.warn("Request timeout: {}", request.getRequestId());
-
                 UserResponse timeoutResponse = UserResponse.builder()
                         .requestId(request.getRequestId())
                         .errorMessage(UserResponse.ErrorMessage.TIMEOUT)
                         .build();
-
                 pending.complete(timeoutResponse);
             }
         }, 5, TimeUnit.SECONDS);

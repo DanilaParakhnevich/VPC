@@ -15,11 +15,6 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
-  security:
-    user:
-      name: ${ACTUATOR_USER:admin}
-      password: ${ACTUATOR_PASSWORD:admin123}
-
 server:
   port: ${SERVER_PORT:8080}
   shutdown: graceful
@@ -46,3 +41,6 @@ logging:
     name: /var/log/gateway-service/app.log
     max-size: 100MB
     max-history: 30
+
+jwt:
+  secret: ${JWT_SECRET:5367566859703373367639792F423F452848284D6251655468576D5A71347437}

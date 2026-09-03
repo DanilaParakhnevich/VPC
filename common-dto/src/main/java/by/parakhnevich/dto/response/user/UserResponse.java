@@ -31,7 +31,6 @@ public class UserResponse {
 
     @Getter
     public enum ErrorMessage {
-        BAD_TOKEN(401),
         NOT_FOUND(404),
         BAD_PASSWORD(400),
         BAD_REQUEST(400),
