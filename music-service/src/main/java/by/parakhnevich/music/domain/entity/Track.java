@@ -30,21 +30,21 @@ public class Track extends BaseEntity {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "track_album",
+            name = "track_band",
+            joinColumns = @JoinColumn(name = "track_id"),
+            inverseJoinColumns = @JoinColumn(name = "band_id")
+    )
+    @ToString.Exclude
+    private List<Band> bands;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "track_collection",
             joinColumns = @JoinColumn(name = "track_id"),
             inverseJoinColumns = @JoinColumn(name = "album_id")
     )
     @ToString.Exclude
-    private List<Album> albums;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "track_single",
-            joinColumns = @JoinColumn(name = "track_id"),
-            inverseJoinColumns = @JoinColumn(name = "single_id")
-    )
-    @ToString.Exclude
-    private List<Single> singles;
+    private List<Collection> collections;
 
     @ManyToMany
     @JoinTable(

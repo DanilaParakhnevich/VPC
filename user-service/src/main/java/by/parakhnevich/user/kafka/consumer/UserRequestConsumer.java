@@ -14,16 +14,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.jboss.logmanager.Level;
-import org.jboss.logmanager.LogManager;
 
 import java.time.ZonedDateTime;
-import java.util.logging.Logger;
 
 /**
  * Created by agallochum on 2026-05-18
@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class UserRequestConsumer {
 
-    private static final Logger LOGGER = LogManager.getLogManager().getLogger(UserRequestConsumer.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(UserRequestConsumer.class.getName());
 
     @Inject
     @Channel("users-response")
@@ -64,22 +64,22 @@ public class UserRequestConsumer {
 
             user.setRequestId(userRequest.getRequestId());
 
-            LOGGER.info("Sending response for request: " + userRequest.getRequestId());
+            LOGGER.info("Sending response for request: {}", userRequest.getRequestId());
             emitter.send(objectMapper.writeValueAsString(user));
         } catch (UserAlreadyExistsException e) {
-            LOGGER.log(Level.ERROR, e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.ALREADY_EXISTS, userRequest.getRequestId());
         } catch (BadCredentialsException e) {
-            LOGGER.log(Level.ERROR, e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_PASSWORD, userRequest.getRequestId());
         }  catch (UserNotFoundException e) {
-            LOGGER.log(Level.ERROR, e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.NOT_FOUND, userRequest.getRequestId());
         } catch (JsonProcessingException e) {
-            LOGGER.log(Level.ERROR, "Failed to parse user request", e);
+            LOGGER.error("Failed to parse user request", e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST, userRequest.getRequestId());
         } catch (Exception e) {
-            LOGGER.log(Level.ERROR, "Unexpected error", e);
+            LOGGER.error("Unexpected error", e);
             sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST, userRequest.getRequestId());
         }
 

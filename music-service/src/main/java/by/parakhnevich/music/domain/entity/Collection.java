@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @ToString
-public class Album extends BaseEntity {
+public class Collection extends BaseEntity {
 
     @Column(name = "title")
     private String title;
