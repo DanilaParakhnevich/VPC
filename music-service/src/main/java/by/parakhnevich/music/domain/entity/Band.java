@@ -23,15 +23,15 @@ public class Band extends BaseEntity {
 
     private String geo;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "band_genre",
+            name = "band_musician",
             joinColumns = @JoinColumn(name = "band_id"),
-            inverseJoinColumns = @JoinColumn(name = "genre_id")
+            inverseJoinColumns = @JoinColumn(name = "musician_id")
     )
     private List<Musician> musicians;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "band_genre",
             joinColumns = @JoinColumn(name = "band_id"),

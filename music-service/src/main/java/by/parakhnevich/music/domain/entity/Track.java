@@ -18,15 +18,14 @@ import java.util.List;
 @ToString
 public class Track extends BaseEntity {
 
+    @Column(name = "title")
+    private String title;
+
     @Column(name = "trackPath")
     private String trackPath;
 
     @Column(name = "duration")
     private int duration;
-
-    //  For position in album or single (happens that there are more than one track)
-    @Column(name = "track_number")
-    private Short trackNumber;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -41,7 +40,7 @@ public class Track extends BaseEntity {
     @JoinTable(
             name = "track_collection",
             joinColumns = @JoinColumn(name = "track_id"),
-            inverseJoinColumns = @JoinColumn(name = "album_id")
+            inverseJoinColumns = @JoinColumn(name = "collection_id")
     )
     @ToString.Exclude
     private List<Collection> collections;
