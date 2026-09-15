@@ -21,7 +21,6 @@ import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import org.jboss.logmanager.Level;
 
 import java.time.ZonedDateTime;
 

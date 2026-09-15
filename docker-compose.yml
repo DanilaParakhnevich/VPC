@@ -42,9 +42,9 @@ services:
       SERVER_PORT: ${GATEWAY_PORT:-8080}
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
-      - "8080:8080"
-      - "8081:8081"
-      - "5005:5005"
+      - "${GATEWAY_SERVICE_SERVER_PORT:-8080}:8080"
+      - "${GATEWAY_SERVICE_ACTUATOR_PORT:-8081}:8081"
+      - "${GATEWAY_SERVICE_DEBUGGER_PORT:-5005}:5005"
     volumes:
       - gateway_logs:/var/log/gateway-service
     healthcheck:
@@ -64,7 +64,7 @@ services:
       POSTGRES_USER: ${USERS_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${USERS_DB_PASSWORD:-postgres}
     ports:
-      - "5432:5432"
+      - "${USER_SERVICE_DATABASE_PORT:-5432}:5432"
     volumes:
       - user_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -98,8 +98,8 @@ services:
       ACTUATOR_PASSWORD: ${USERS_ACTUATOR_PASSWORD:-admin123}
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
-      - "5006:5005"
-      - "8082:8081"
+      - "${USER_SERVICE_DEBUGGER_PORT:-5006}:5005"
+      - "${USER_SERVICE_SERVER_PORT:-8082}:8081"
     volumes:
       - user_logs:/var/log/user-service
     healthcheck:
@@ -120,7 +120,7 @@ services:
       POSTGRES_USER: ${MUSIC_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${MUSIC_DB_PASSWORD:-1234}
     ports:
-      - "5433:5432"
+      - "${MUSIC_SERVICE_DATABASE_PORT:-5433}:5432"
     volumes:
       - music_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -155,7 +155,7 @@ services:
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
       - "5007:5005"
-      - "8083:8081"
+      - "${MUSIC_SERVICE_SERVER_PORT:-8083}:8081"
     volumes:
       - music_logs:/var/log/music-service
     healthcheck:

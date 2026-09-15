@@ -1,4 +1,5 @@
 package by.parakhnevich.music.domain.entity;
+
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 import lombok.Getter;

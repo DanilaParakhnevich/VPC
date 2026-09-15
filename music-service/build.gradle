@@ -41,7 +41,7 @@ dependencies {
     implementation "org.springframework.security:spring-security-crypto:${springVersion}"
     implementation("io.jsonwebtoken:jjwt:${jwtVersion}")
 
-    // Cachegf
+    // Cache
     implementation 'io.quarkus:quarkus-cache'
 
     // Jackson + JavaTime
