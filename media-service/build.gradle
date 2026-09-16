@@ -1,0 +1,55 @@
+plugins {
+    id 'java'
+    id 'io.quarkus' version "${quarkusVersion}"
+    id 'io.freefair.lombok' version "${lombokVersion}"
+}
+
+group = 'by.parakhnevich'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = '21'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Quarkus BOM
+    implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:${quarkusVersion}")
+
+    // REST
+    implementation 'io.quarkus:quarkus-resteasy-client'
+    implementation "io.quarkus:quarkus-rest"
+    implementation "io.quarkus:quarkus-rest-jsonb"
+    implementation 'io.quarkus:quarkus-resteasy-multipart'
+    // Quarkus core
+    implementation 'io.quarkus:quarkus-arc'
+
+    // Security
+    implementation "org.springframework.security:spring-security-crypto:${springVersion}"
+    implementation("io.jsonwebtoken:jjwt:${jwtVersion}")
+
+    // Cache
+    implementation 'io.quarkus:quarkus-cache'
+
+    // Jackson + JavaTime
+    implementation 'io.quarkus:quarkus-jackson'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // Metrics & Health
+    implementation 'io.quarkus:quarkus-micrometer'
+    implementation 'io.quarkus:quarkus-smallrye-health'
+
+    // Logging
+    implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.4'
+
+    // Test
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+}
