@@ -32,19 +32,15 @@ public sealed interface UserRequest permits
 
     String requestId();
 
-    ZonedDateTime dateTime();
-
     @Builder @With
     record Register(
             String requestId,
             String email,
             String username,
-            String password,
-            ZonedDateTime dateTime
+            String password
     ) implements UserRequest {
         public Register {
             if (requestId == null) requestId = UUID.randomUUID().toString();
-            if (dateTime  == null) dateTime  = ZonedDateTime.now();
         }
     }
 
@@ -52,36 +48,30 @@ public sealed interface UserRequest permits
     record Authenticate(
             String requestId,
             String username,
-            String password,
-            ZonedDateTime dateTime
+            String password
     ) implements UserRequest {
         public Authenticate {
             if (requestId == null) requestId = UUID.randomUUID().toString();
-            if (dateTime  == null) dateTime  = ZonedDateTime.now();
         }
     }
 
     @Builder @With
     record GetById(
             String requestId,
-            String userId,
-            ZonedDateTime dateTime
+            String userId
     ) implements UserRequest {
         public GetById {
             if (requestId == null) requestId = UUID.randomUUID().toString();
-            if (dateTime  == null) dateTime  = ZonedDateTime.now();
         }
     }
 
     @Builder @With
     record GetByUsername(
             String requestId,
-            String username,
-            ZonedDateTime dateTime
+            String username
     ) implements UserRequest {
         public GetByUsername {
             if (requestId == null) requestId = UUID.randomUUID().toString();
-            if (dateTime  == null) dateTime  = ZonedDateTime.now();
         }
     }
 
@@ -93,12 +83,10 @@ public sealed interface UserRequest permits
             String emailLike,
             String usernameLike,
             ZonedDateTime createdAfter,
-            ZonedDateTime createdBefore,
-            ZonedDateTime dateTime
+            ZonedDateTime createdBefore
     ) implements UserRequest {
         public GetAll {
             if (requestId == null) requestId = UUID.randomUUID().toString();
-            if (dateTime  == null) dateTime  = ZonedDateTime.now();
             if (page      == null) page      = 0;
             if (size      == null || size <= 0) size = 20;
         }

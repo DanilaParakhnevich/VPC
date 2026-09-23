@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.With;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 /**
  * Created by agallochum on 2026-05-16
@@ -71,7 +72,7 @@ public sealed interface UserResponse permits
     @Builder @With
     record Page(
             String requestId,
-            java.util.List<Single> content,
+            List<Single> content,
             int page,
             int size,
             long totalElements,

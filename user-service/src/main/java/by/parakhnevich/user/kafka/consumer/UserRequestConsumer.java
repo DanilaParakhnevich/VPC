@@ -99,7 +99,7 @@ public class UserRequestConsumer {
         userRepository.persist(user);
 
         return authenticate(new UserRequest.Authenticate(
-                req.requestId(), req.username(), req.password(), ZonedDateTime.now()));
+                req.requestId(), req.username(), req.password()));
     }
 
     public UserResponse.Single authenticate(UserRequest.Authenticate req) {

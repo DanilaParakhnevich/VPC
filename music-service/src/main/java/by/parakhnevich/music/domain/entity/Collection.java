@@ -24,8 +24,10 @@ public class Collection extends BaseEntity {
     @Column(name = "description")
     private String description;
 
+    private String imageId;
+
     @Enumerated(value = EnumType.STRING)
-    @Column(name = "collectionType")
+    @Column(name = "collection_type")
     private CollectionType collectionType;
 
     @ManyToMany(fetch = FetchType.LAZY)

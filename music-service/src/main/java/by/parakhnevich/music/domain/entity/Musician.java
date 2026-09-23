@@ -20,6 +20,8 @@ public class Musician extends BaseEntity {
 
     private String name;
 
+    private String imageId;
+
     @Column(name = "birth_date")
     private LocalDate birthDate;
 

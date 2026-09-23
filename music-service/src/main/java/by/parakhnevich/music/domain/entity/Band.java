@@ -23,6 +23,8 @@ public class Band extends BaseEntity {
 
     private String geo;
 
+    private String imageId;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "band_musician",
