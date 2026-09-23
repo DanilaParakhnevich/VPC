@@ -181,7 +181,7 @@ public class UserRequestConsumer {
         if (updates.containsKey("username")) {
             var newUsername = String.valueOf(updates.remove("username"));
             if (newUsername.isBlank()) {
-                throw new BadCredentialsException(); // или отдельный BadRequestException
+                throw new BadCredentialsException();
             }
             if (!newUsername.equals(user.getUsername())
                     && userRepository.findByUsername(newUsername).isPresent()) {
