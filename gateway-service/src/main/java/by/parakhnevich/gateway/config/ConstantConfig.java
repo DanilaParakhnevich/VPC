@@ -16,7 +16,6 @@ public class ConstantConfig {
                 "/error",
                 "/api/auth/login",
                 "/api/auth/register",
-                "/api/users",
                 "/public",
                 "/actuator/**",
                 "/swagger-ui/**",
