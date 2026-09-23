@@ -3,7 +3,7 @@ FROM gradle:8.14-jdk21 AS builder
 
 WORKDIR /app
 COPY . .
-RUN gradle :user-service:quarkusBuild -x test --no-daemon --parallel
+RUN gradle :media-service:quarkusBuild -x test --no-daemon --parallel
 
 FROM eclipse-temurin:21-jre-jammy
 
