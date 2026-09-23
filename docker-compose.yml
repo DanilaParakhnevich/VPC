@@ -223,7 +223,7 @@ volumes:
   media_data:
   user_logs:
   music_logs:
-  media-logs:
+  media_logs:
 
 networks:
   broker-network:
