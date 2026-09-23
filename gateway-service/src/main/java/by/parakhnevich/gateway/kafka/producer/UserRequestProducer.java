@@ -12,7 +12,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.*;
 
 /**
@@ -23,6 +22,8 @@ import java.util.concurrent.*;
 public class UserRequestProducer {
 
     private static final Logger LOGGER = LogManager.getLogger(UserRequestProducer.class);
+    private static final String TOPIC = "users-request";
+    private static final long TIMEOUT_SECONDS = 5;
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
@@ -33,87 +34,84 @@ public class UserRequestProducer {
     private final Map<String, CompletableFuture<UserResponse>> pendingRequests = new ConcurrentHashMap<>();
     private final ScheduledExecutorService timeoutScheduler = Executors.newScheduledThreadPool(10);
 
-    public CompletableFuture<UserResponse> register(String email, String username, String password) throws JsonProcessingException {
-        String requestId = UUID.randomUUID().toString();
-        UserRequest request = UserRequest.builder()
-                .requestId(requestId)
+    public CompletableFuture<UserResponse> register(String email, String username, String password)
+            throws JsonProcessingException {
+        return sendAndReceive(UserRequest.Register.builder()
                 .email(email)
                 .username(username)
                 .password(password)
-                .action(UserRequest.Action.REGISTER)
-                .build();
-        return sendAndReceive(request);
+                .build());
     }
 
-    public CompletableFuture<UserResponse> authenticate(String username, String password) throws JsonProcessingException {
-        String requestId = UUID.randomUUID().toString();
-        UserRequest request = UserRequest.builder()
-                .requestId(requestId)
+    public CompletableFuture<UserResponse> authenticate(String username, String password)
+            throws JsonProcessingException {
+        return sendAndReceive(UserRequest.Authenticate.builder()
                 .username(username)
                 .password(password)
-                .action(UserRequest.Action.AUTHENTICATE)
-                .build();
-        return sendAndReceive(request);
+                .build());
     }
 
     public CompletableFuture<UserResponse> getUserById(Long id) throws JsonProcessingException {
-        String requestId = UUID.randomUUID().toString();
-        UserRequest request = UserRequest.builder()
-                .requestId(requestId)
+        return sendAndReceive(UserRequest.GetById.builder()
                 .userId(String.valueOf(id))
-                .action(UserRequest.Action.GET_USER_BY_ID)
-                .build();
-        return sendAndReceive(request);
+                .build());
     }
 
-    public CompletableFuture<UserResponse> getUserByUsername(String username) throws JsonProcessingException {
-        String requestId = UUID.randomUUID().toString();
-        UserRequest request = UserRequest.builder()
-                .requestId(requestId)
+    public CompletableFuture<UserResponse> getUserByUsername(String username)
+            throws JsonProcessingException {
+        return sendAndReceive(UserRequest.GetByUsername.builder()
                 .username(username)
-                .action(UserRequest.Action.GET_USER_BY_USERNAME)
-                .build();
-        return sendAndReceive(request);
+                .build());
     }
 
-    public CompletableFuture<UserResponse> updateUser(Long userId, Map<String, Object> updates) throws JsonProcessingException {
-        String requestId = UUID.randomUUID().toString();
-        UserRequest request = UserRequest.builder()
-                .requestId(requestId)
-                .userId(userId.toString())
+    public CompletableFuture<UserResponse> getAllUsers(int page, int size,
+                                                       String emailLike, String usernameLike)
+            throws JsonProcessingException {
+        return sendAndReceive(UserRequest.UserFilter.builder()
+                .page(page)
+                .size(size)
+                .emailLike(emailLike)
+                .usernameLike(usernameLike)
+                .build());
+    }
+
+    public CompletableFuture<UserResponse> updateUser(Long userId, Map<String, Object> updates)
+            throws JsonProcessingException {
+        return sendAndReceive(UserRequest.Update.builder()
+                .userId(String.valueOf(userId))
                 .updates(updates)
-                .action(UserRequest.Action.UPDATE_USER)
-                .build();
-        return sendAndReceive(request);
+                .build());
     }
 
-    private CompletableFuture<UserResponse> sendAndReceive(UserRequest request) throws JsonProcessingException {
-        CompletableFuture<UserResponse> future = new CompletableFuture<>();
-        pendingRequests.put(request.getRequestId(), future);
+    private CompletableFuture<UserResponse> sendAndReceive(UserRequest request)
+            throws JsonProcessingException {
+
+        var future = new CompletableFuture<UserResponse>();
+        pendingRequests.put(request.requestId(), future);
 
         timeoutScheduler.schedule(() -> {
-            CompletableFuture<UserResponse> pending = pendingRequests.remove(request.getRequestId());
+            var pending = pendingRequests.remove(request.requestId());
             if (pending != null && !pending.isDone()) {
-                LOGGER.warn("Request timeout: {}", request.getRequestId());
-                UserResponse timeoutResponse = UserResponse.builder()
-                        .requestId(request.getRequestId())
+                LOGGER.warn("Request timeout: {}", request.requestId());
+                pending.complete(UserResponse.ErrorResponse.builder()
+                        .requestId(request.requestId())
                         .errorMessage(UserResponse.ErrorMessage.TIMEOUT)
-                        .build();
-                pending.complete(timeoutResponse);
+                        .message("user-service did not respond")
+                        .build());
             }
-        }, 5, TimeUnit.SECONDS);
+        }, TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-        kafkaTemplate.send("users-request", request.getRequestId(), objectMapper.writeValueAsString(request))
+        kafkaTemplate.send(TOPIC, request.requestId(), objectMapper.writeValueAsString(request))
                 .whenComplete((result, e) -> {
                     if (e != null) {
-                        LOGGER.error("Failed to send Kafka message: {}", request.getRequestId(), e);
-                        CompletableFuture<UserResponse> pending = pendingRequests.remove(request.getRequestId());
+                        LOGGER.error("Failed to send Kafka message: {}", request.requestId(), e);
+                        var pending = pendingRequests.remove(request.requestId());
                         if (pending != null && !pending.isDone()) {
                             pending.completeExceptionally(e);
                         }
                     } else {
                         LOGGER.debug("Sent Kafka message: {} to partition {}",
-                                request.getRequestId(),
+                                request.requestId(),
                                 result.getRecordMetadata().partition());
                     }
                 });

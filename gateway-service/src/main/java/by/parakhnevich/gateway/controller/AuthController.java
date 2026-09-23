@@ -20,7 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static by.parakhnevich.common.dto.response.user.UserResponse.ErrorMessage.NONE;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by agallochum on 2026-05-12
@@ -31,34 +32,40 @@ import static by.parakhnevich.common.dto.response.user.UserResponse.ErrorMessage
 public class AuthController {
 
     private static final Logger LOGGER = LogManager.getLogger(AuthController.class);
+    private static final long HTTP_TIMEOUT_SECONDS = 6;
 
-    private UserRequestProducer userRequestProducer;
-    
-    private UserMapper userMapper;
+    private final UserRequestProducer userRequestProducer;
+    private final UserMapper userMapper;
 
-    @Operation(summary = "Register user", description = "Returns user data all an error")
+    @Operation(summary = "Register user", description = "Returns user data or an error")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Ok"),
-            @ApiResponse(responseCode = "400", description = "User not found or bad request"),
+            @ApiResponse(responseCode = "409", description = "Already exists"),
             @ApiResponse(responseCode = "500", description = "Internal error")
     })
     @PostMapping("/register")
     public ResponseEntity<SignUpResponseDto> register(@RequestBody SignUpRequestDto signUpRequest) {
         try {
-            var register = userRequestProducer.register(signUpRequest.getEmail(), signUpRequest.getUsername(), signUpRequest.getPassword());
+            var response = userRequestProducer
+                    .register(signUpRequest.getEmail(),
+                            signUpRequest.getUsername(),
+                            signUpRequest.getPassword())
+                    .get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            UserResponse userResponse = register.get();
-            if (userResponse.getErrorMessage().equals(NONE)) {
-                return ResponseEntity.ok(userMapper.toSignUpResponse(userResponse));
-            } else {
-                return ResponseEntity.status(userResponse.getErrorMessage().getCode()).build();
+            if (response instanceof UserResponse.Single s && s.isSuccess()) {
+                return ResponseEntity.ok(userMapper.toSignUpResponse(s));
             }
+            return ResponseEntity.status(response.errorMessage().getCode()).build();
+        } catch (TimeoutException e) {
+            LOGGER.error("Timeout for register", e);
+            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).build();
         } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @Operation(summary = "Authenticate user", description = "Authenticate user saving JWT token in server. Returns authenticated user with token")
+    @Operation(summary = "Authenticate user", description = "Returns authenticated user with token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Ok"),
             @ApiResponse(responseCode = "400", description = "Bad request"),
@@ -67,15 +74,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
         try {
-            var login = userRequestProducer.authenticate(loginRequest.getUsername(), loginRequest.getPassword());
+            var response = userRequestProducer
+                    .authenticate(loginRequest.getUsername(), loginRequest.getPassword())
+                    .get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            UserResponse userResponse = login.get();
-            if (userResponse.getErrorMessage().equals(NONE)) {
-                return ResponseEntity.ok(userMapper.toAuthResponse(userResponse));
-            } else {
-                return ResponseEntity.status(userResponse.getErrorMessage().getCode()).build();
+            if (response instanceof UserResponse.Single s && s.isSuccess()) {
+                return ResponseEntity.ok(userMapper.toAuthResponse(s));
             }
+            return ResponseEntity.status(response.errorMessage().getCode()).build();
+        } catch (TimeoutException e) {
+            LOGGER.error("Timeout for login", e);
+            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).build();
         } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

@@ -8,13 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by agallochum on 2026-05-12
@@ -25,44 +24,64 @@ import java.util.concurrent.CompletableFuture;
 public class UserController {
 
     private static final Logger LOGGER = LogManager.getLogger(UserController.class);
-    private UserRequestProducer userRequestProducer;
+    private static final long HTTP_TIMEOUT_SECONDS = 6;
+
+    private final UserRequestProducer userRequestProducer;
 
     @Operation(summary = "Get user by id", description = "Returns user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Ok"),
-            @ApiResponse(responseCode = "400", description = "User not found or bad request"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
             @ApiResponse(responseCode = "500", description = "Internal error")
     })
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getUser(@PathVariable Long userId) {
+    public ResponseEntity<? extends UserResponse> getUser(@PathVariable Long userId) {
         try {
-            CompletableFuture<UserResponse> response = userRequestProducer.getUserById(userId);
+            var response = userRequestProducer.getUserById(userId)
+                    .get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            UserResponse userResponse = response.get();
-            return ResponseEntity.status(userResponse.getErrorMessage().getCode()).body(userResponse);
+            return switch (response) {
+                case UserResponse.Single s        -> ResponseEntity.status(s.errorMessage().getCode()).body(s);
+                case UserResponse.ErrorResponse e -> ResponseEntity.status(e.errorMessage().getCode()).body(e);
+                default -> ResponseEntity.internalServerError().build();
+            };
+        } catch (TimeoutException e) {
+            LOGGER.error("Timeout for getUser({})", userId, e);
+            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).build();
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
 
-//    @GetMapping("/{type}/{field}")
-//    public ResponseEntity<?> getUser(@PathVariable String type, @PathVariable String field) {
-//        try {
-//            switch (type) {
-//                case "id":
-//                    return ResponseEntity.ok(userService.getUserById(UUID.fromString(field)));
-//                case "username":
-//                    return ResponseEntity.ok(userService.getUserByUsername(field));
-//                default:
-//                    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
-//            }
-//        } catch (UsernameNotFoundException | IdNotFoundException e) {
-//            LOGGER.error(e.getMessage(), e);
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-//        } catch (Exception e) {
-//            LOGGER.error(e.getMessage(), e);
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//        }
-//    }
+    @Operation(summary = "Get all users pageable", description = "Returns users pageable")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ok"),
+            @ApiResponse(responseCode = "500", description = "Internal error")
+    })
+    @GetMapping
+    public ResponseEntity<? extends UserResponse> getAllUsers(
+            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false)    String emailLike,
+            @RequestParam(required = false)    String usernameLike) {
+
+        try {
+            var response = userRequestProducer
+                    .getAllUsers(page, size, emailLike, usernameLike)
+                    .get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            return switch (response) {
+                case UserResponse.Page p          -> ResponseEntity.status(p.errorMessage().getCode()).body(p);
+                case UserResponse.ErrorResponse e -> ResponseEntity.status(e.errorMessage().getCode()).body(e);
+                default -> ResponseEntity.internalServerError().build();
+            };
+        } catch (TimeoutException e) {
+            LOGGER.error("Timeout for getAllUsers", e);
+            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).build();
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

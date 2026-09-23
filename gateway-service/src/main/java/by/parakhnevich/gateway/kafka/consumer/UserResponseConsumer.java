@@ -11,8 +11,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.CompletableFuture;
-
 /**
  * Created by agallochum on 2026-05-20
  */
@@ -25,25 +23,19 @@ public class UserResponseConsumer {
     private final UserRequestProducer userRequestProducer;
     private final ObjectMapper objectMapper;
 
-    @RetryableTopic(
-            attempts = "3",
-            backOff = @BackOff(delay = 2000)
-    )
-    @KafkaListener(
-            topics = "users-response"
-    )
+    @RetryableTopic(attempts = "3", backOff = @BackOff(delay = 2000))
+    @KafkaListener(topics = "users-response")
     public void handleResponse(String responseStr) {
         try {
-            UserResponse response = objectMapper.readValue(responseStr, UserResponse.class);
+            var response = objectMapper.readValue(responseStr, UserResponse.class);
             LOGGER.info("Received response for request: {}, success: {}",
-                    response.getRequestId(),
-                    response.getErrorMessage().equals(UserResponse.ErrorMessage.NONE));
+                    response.requestId(), response.isSuccess());
 
-            CompletableFuture<UserResponse> future = userRequestProducer.getPendingRequests().remove(response.getRequestId());
+            var future = userRequestProducer.getPendingRequests().remove(response.requestId());
             if (future != null) {
                 future.complete(response);
             } else {
-                LOGGER.warn("No pending request found for response: {}", response.getRequestId());
+                LOGGER.warn("No pending request found for response: {}", response.requestId());
             }
         } catch (Exception e) {
             LOGGER.error("Error processing response: {}", e.getMessage(), e);
