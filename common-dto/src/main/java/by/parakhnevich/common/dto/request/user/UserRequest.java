@@ -1,36 +1,133 @@
 package by.parakhnevich.common.dto.request.user;
 
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Builder;
+import lombok.With;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.UUID;
+
 
 /**
  * Created by agallochum on 2026-05-16
  */
-@ToString
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserRequest {
-    private String requestId;
-    private String email;
-    private String userId;
-    private String username;
-    private String password;
-    private String token;
-    private Action action;
-    private Map<String, Object> updates;
-    @Builder.Default
-    private ZonedDateTime dateTime = ZonedDateTime.now();
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "action", visible = false)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = UserRequest.Register.class,      name = "REGISTER"),
+        @JsonSubTypes.Type(value = UserRequest.Authenticate.class,  name = "AUTHENTICATE"),
+        @JsonSubTypes.Type(value = UserRequest.GetById.class,       name = "GET_BY_ID"),
+        @JsonSubTypes.Type(value = UserRequest.GetByUsername.class, name = "GET_BY_USERNAME"),
+        @JsonSubTypes.Type(value = UserRequest.UserFilter.class,    name = "GET_ALL"),
+        @JsonSubTypes.Type(value = UserRequest.Update.class,        name = "UPDATE_USER"),
+})
+public sealed interface UserRequest permits
+        UserRequest.Register,
+        UserRequest.Authenticate,
+        UserRequest.GetById,
+        UserRequest.GetByUsername,
+        UserRequest.UserFilter,
+        UserRequest.Update {
 
-    public enum Action {
-        REGISTER,
-        AUTHENTICATE,
-        GET_USER_BY_USERNAME,
-        UPDATE_USER,
-        GET_USER_BY_ID
+    String requestId();
+
+    ZonedDateTime dateTime();
+
+    @JsonIgnore
+    Action action();
+
+    enum Action {
+        REGISTER, AUTHENTICATE, GET_BY_ID, GET_BY_USERNAME, GET_ALL, UPDATE_USER
+    }
+
+    @Builder @With
+    record Register(
+            String requestId,
+            String email,
+            String username,
+            String password,
+            ZonedDateTime dateTime
+    ) implements UserRequest {
+        public Register {
+            if (requestId == null) requestId = UUID.randomUUID().toString();
+            if (dateTime  == null) dateTime  = ZonedDateTime.now();
+        }
+        @Override public Action action() { return Action.REGISTER; }
+    }
+
+    @Builder @With
+    record Authenticate(
+            String requestId,
+            String username,
+            String password,
+            ZonedDateTime dateTime
+    ) implements UserRequest {
+        public Authenticate {
+            if (requestId == null) requestId = UUID.randomUUID().toString();
+            if (dateTime  == null) dateTime  = ZonedDateTime.now();
+        }
+        @Override public Action action() { return Action.AUTHENTICATE; }
+    }
+
+    @Builder @With
+    record GetById(
+            String requestId,
+            String userId,
+            ZonedDateTime dateTime
+    ) implements UserRequest {
+        public GetById {
+            if (requestId == null) requestId = UUID.randomUUID().toString();
+            if (dateTime  == null) dateTime  = ZonedDateTime.now();
+        }
+        @Override public Action action() { return Action.GET_BY_ID; }
+    }
+
+    @Builder @With
+    record GetByUsername(
+            String requestId,
+            String username,
+            ZonedDateTime dateTime
+    ) implements UserRequest {
+        public GetByUsername {
+            if (requestId == null) requestId = UUID.randomUUID().toString();
+            if (dateTime  == null) dateTime  = ZonedDateTime.now();
+        }
+        @Override public Action action() { return Action.GET_BY_USERNAME; }
+    }
+
+    @Builder @With
+    record UserFilter(
+            String requestId,
+            Integer page,
+            Integer size,
+            String emailLike,
+            String usernameLike,
+            ZonedDateTime createdAfter,
+            ZonedDateTime createdBefore,
+            ZonedDateTime dateTime
+    ) implements UserRequest {
+        public UserFilter {
+            if (requestId == null) requestId = UUID.randomUUID().toString();
+            if (dateTime  == null) dateTime  = ZonedDateTime.now();
+            if (page      == null) page      = 0;
+            if (size      == null || size <= 0) size = 20;
+        }
+        @Override public Action action() { return Action.GET_ALL; }
+    }
+
+    @Builder @With
+    record Update(
+            String requestId,
+            String userId,
+            Map<String, Object> updates,
+            ZonedDateTime dateTime
+    ) implements UserRequest {
+        public Update {
+            if (requestId == null) requestId = UUID.randomUUID().toString();
+            if (dateTime  == null) dateTime  = ZonedDateTime.now();
+        }
+        @Override public Action action() { return Action.UPDATE_USER; }
     }
 }

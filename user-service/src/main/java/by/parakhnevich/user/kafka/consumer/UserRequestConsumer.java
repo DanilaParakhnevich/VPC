@@ -11,6 +11,8 @@ import by.parakhnevich.user.utils.JwtService;
 import by.parakhnevich.user.utils.PasswordHasher;
 import by.parakhnevich.user.utils.mapper.UserMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.quarkus.panache.common.Page;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +22,9 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 
-import jakarta.enterprise.context.ApplicationScoped;
-
 import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by agallochum on 2026-05-18
@@ -31,7 +33,7 @@ import java.time.ZonedDateTime;
 @RequiredArgsConstructor
 public class UserRequestConsumer {
 
-    private static final Logger LOGGER = LogManager.getLogger(UserRequestConsumer.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(UserRequestConsumer.class);
 
     @Inject
     @Channel("users-response")
@@ -49,104 +51,142 @@ public class UserRequestConsumer {
 
     @Incoming("users-request")
     @Transactional
-    public void consume(String userRequestStr) throws JsonProcessingException {
-        var userRequest = objectMapper.readValue(userRequestStr, UserRequest.class);
-
+    public void consume(String userRequestStr) {
+        UserRequest userRequest = null;
         try {
-            var user = switch (userRequest.getAction()) {
-                case REGISTER -> register(userRequest);
-                case AUTHENTICATE -> authenticate(userRequest);
-                case UPDATE_USER -> update(userRequest);
-                case GET_USER_BY_ID -> getById(userRequest);
-                case GET_USER_BY_USERNAME -> getByUsername(userRequest);
+            userRequest = objectMapper.readValue(userRequestStr, UserRequest.class);
+
+            UserResponse response = switch (userRequest) {
+                case UserRequest.Register r      -> register(r);
+                case UserRequest.Authenticate a  -> authenticate(a);
+                case UserRequest.GetById g       -> getById(g);
+                case UserRequest.GetByUsername g -> getByUsername(g);
+                case UserRequest.UserFilter f    -> getAllPageable(f);
+                case UserRequest.Update u        -> update(u);
             };
 
-            user.setRequestId(userRequest.getRequestId());
-
-            LOGGER.info("Sending response for request: {}", userRequest.getRequestId());
-            emitter.send(objectMapper.writeValueAsString(user));
+            LOGGER.info("Sending response for request: {}", userRequest.requestId());
+            emitter.send(objectMapper.writeValueAsString(response));
         } catch (UserAlreadyExistsException e) {
             LOGGER.error(e.getMessage(), e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.ALREADY_EXISTS, userRequest.getRequestId());
+            sendError(UserResponse.ErrorMessage.ALREADY_EXISTS, userRequest);
         } catch (BadCredentialsException e) {
             LOGGER.error(e.getMessage(), e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_PASSWORD, userRequest.getRequestId());
-        }  catch (UserNotFoundException e) {
+            sendError(UserResponse.ErrorMessage.BAD_PASSWORD, userRequest);
+        } catch (UserNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.NOT_FOUND, userRequest.getRequestId());
+            sendError(UserResponse.ErrorMessage.NOT_FOUND, userRequest);
         } catch (JsonProcessingException e) {
             LOGGER.error("Failed to parse user request", e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST, userRequest.getRequestId());
+            sendError(UserResponse.ErrorMessage.BAD_REQUEST, userRequest);
         } catch (Exception e) {
             LOGGER.error("Unexpected error", e);
-            sendErrorMessageToEmitter(UserResponse.ErrorMessage.BAD_REQUEST, userRequest.getRequestId());
-        }
-
-    }
-
-    public UserResponse register(UserRequest userRequest) {
-        try {
-            var user = userMapper.toUser(userRequest);
-            user.setPassword(passwordHasher.hash(userRequest.getPassword()));
-            if (userRepository.findByUsername(user.getUsername()).isPresent()
-                    || userRepository.findByEmail(user.getEmail()).isPresent()) {
-                throw new UserAlreadyExistsException();
-            } else {
-                userRepository.persist(user);
-                return authenticate(userRequest);
-            }
-        } catch (UserNotFoundException e) {
-            throw new RuntimeException(e.getMessage());
+            sendError(UserResponse.ErrorMessage.BAD_REQUEST, userRequest);
         }
     }
 
-    public UserResponse authenticate(UserRequest userRequest) {
-        var user = userRepository.findByUsername(userRequest.getUsername());
+    // ---------- handlers ----------
 
-        if (user.isPresent()) {
-            if (passwordHasher.matches(userRequest.getPassword(), user.get().getPassword())) {
-                String token = jwtService.generateToken(userRequest.getUsername());
-                UserResponse response = userMapper.toUserResponse(user.get());
-                var updateTime = ZonedDateTime.now();
-                userRepository.updateLastLoginAt(user.get().getUsername(), updateTime);
-                response.setAccessToken(token);
-                response.setLastLoginAt(updateTime);
-                return response;
-            } else {
-                throw new BadCredentialsException();
-            }
-        } else {
-            throw new UserNotFoundException();
+    public UserResponse.Single register(UserRequest.Register req) {
+        if (userRepository.findByUsername(req.username()).isPresent()
+                || userRepository.findByEmail(req.email()).isPresent()) {
+            throw new UserAlreadyExistsException();
         }
+
+        var user = userMapper.toUser(req);
+        user.setPassword(passwordHasher.hash(req.password()));
+        userRepository.persist(user);
+
+        return authenticate(new UserRequest.Authenticate(
+                req.requestId(), req.username(), req.password(), ZonedDateTime.now()));
     }
 
-    public UserResponse update(UserRequest userRequest) {
+    public UserResponse.Single authenticate(UserRequest.Authenticate req) {
+        var user = userRepository.findByUsername(req.username())
+                .orElseThrow(UserNotFoundException::new);
+
+        if (!passwordHasher.matches(req.password(), user.getPassword())) {
+            throw new BadCredentialsException();
+        }
+
+        var token = jwtService.generateToken(req.username());
+        var now = ZonedDateTime.now();
+        userRepository.updateLastLoginAt(user.getUsername(), now);
+
+        return userMapper.toSingle(req.requestId(), user)
+                .withAccessToken(token)
+                .withLastLoginAt(now);
+    }
+
+    public UserResponse.Single getById(UserRequest.GetById req) {
+        return userRepository.findByIdOptional(Long.parseLong(req.userId()))
+                .map(u -> userMapper.toSingle(req.requestId(), u))
+                .orElseThrow(UserNotFoundException::new);
+    }
+
+    public UserResponse.Single getByUsername(UserRequest.GetByUsername req) {
+        return userRepository.findByUsername(req.username())
+                .map(u -> userMapper.toSingle(req.requestId(), u))
+                .orElseThrow(UserNotFoundException::new);
+    }
+
+    public UserResponse.Page getAllPageable(UserRequest.UserFilter req) {
+        var jpql = new StringBuilder("1=1");
+        Map<String, Object> params = new HashMap<>();
+
+        if (req.emailLike() != null && !req.emailLike().isBlank()) {
+            jpql.append(" and lower(email) like :emailLike");
+            params.put("emailLike", "%" + req.emailLike().toLowerCase() + "%");
+        }
+        if (req.usernameLike() != null && !req.usernameLike().isBlank()) {
+            jpql.append(" and lower(username) like :usernameLike");
+            params.put("usernameLike", "%" + req.usernameLike().toLowerCase() + "%");
+        }
+        if (req.createdAfter() != null) {
+            jpql.append(" and createdAt >= :createdAfter");
+            params.put("createdAfter", req.createdAfter());
+        }
+        if (req.createdBefore() != null) {
+            jpql.append(" and createdAt <= :createdBefore");
+            params.put("createdBefore", req.createdBefore());
+        }
+
+        var query = userRepository.find(jpql.toString(), params);
+        query.page(Page.of(req.page(), req.size()));
+
+        var content = query.list().stream()
+                .map(u -> userMapper.toSingle(req.requestId(), u))
+                .toList();
+
+        return UserResponse.Page.builder()
+                .requestId(req.requestId())
+                .content(content)
+                .page(req.page())
+                .size(req.size())
+                .totalElements(query.count())
+                .totalPages(query.pageCount())
+                .build();
+    }
+
+    public UserResponse.Single update(UserRequest.Update req) {
         throw new UnsupportedOperationException("Update not implemented yet");
     }
 
-    public UserResponse getById(UserRequest userRequest) {
-        var user = userRepository.findByIdOptional(Long.parseLong(userRequest.getUserId()));
-        if (user.isPresent()) {
-            return userMapper.toUserResponse(user.get());
-        } else {
-            throw new UserNotFoundException();
-        }
-    }
+    // ---------- helpers ----------
 
-    public UserResponse getByUsername(UserRequest userRequest) {
-        var user = userRepository.findByUsername(userRequest.getUsername());
-        if (user.isPresent()) {
-            return userMapper.toUserResponse(user.get());
-        } else {
-            throw new UserNotFoundException();
+    private void sendError(UserResponse.ErrorMessage errorMessage, UserRequest request) {
+        if (request == null) {
+            LOGGER.warn("Cannot send error {} - request not parsed", errorMessage);
+            return;
         }
-    }
-
-    private void sendErrorMessageToEmitter(UserResponse.ErrorMessage errorMessage, String requestId) throws JsonProcessingException {
-        emitter.send(objectMapper.writeValueAsString(
-                UserResponse.builder()
-                        .requestId(requestId)
-                        .errorMessage(errorMessage)
-                        .build()));
+        try {
+            emitter.send(objectMapper.writeValueAsString(
+                    UserResponse.ErrorResponse.builder()
+                            .requestId(request.requestId())
+                            .errorMessage(errorMessage)
+                            .build()));
+        } catch (JsonProcessingException e) {
+            LOGGER.error("Failed to serialize error response", e);
+        }
     }
 }
