@@ -19,7 +19,7 @@ public interface UserMapper {
     @Mapping(source = "id", target = "userId")
     @Mapping(target = "requestId",    ignore = true)
     @Mapping(target = "accessToken",  ignore = true)
-    @Mapping(target = "errorMessage", ignore = true)
+    @Mapping(target = "responseCode", ignore = true)
     @Mapping(target = "dateTime",     ignore = true)
     UserResponse.Single toSingle(User user);
 
