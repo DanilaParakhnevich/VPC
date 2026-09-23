@@ -1,4 +1,4 @@
-package by.parakhnevich;
+package by.parakhnevich.media;
 
 import io.quarkus.runtime.Quarkus;
 import org.apache.logging.log4j.LogManager;

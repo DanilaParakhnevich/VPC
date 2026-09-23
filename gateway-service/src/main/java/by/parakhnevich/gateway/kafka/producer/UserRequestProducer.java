@@ -1,7 +1,7 @@
 package by.parakhnevich.gateway.kafka.producer;
 
-import by.parakhnevich.dto.request.user.AuthRequest;
-import by.parakhnevich.dto.response.user.UserResponse;
+import by.parakhnevich.common.dto.request.user.UserRequest;
+import by.parakhnevich.common.dto.response.user.UserResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -35,59 +35,59 @@ public class UserRequestProducer {
 
     public CompletableFuture<UserResponse> register(String email, String username, String password) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-        AuthRequest request = AuthRequest.builder()
+        UserRequest request = UserRequest.builder()
                 .requestId(requestId)
                 .email(email)
                 .username(username)
                 .password(password)
-                .action(AuthRequest.Action.REGISTER)
+                .action(UserRequest.Action.REGISTER)
                 .build();
         return sendAndReceive(request);
     }
 
     public CompletableFuture<UserResponse> authenticate(String username, String password) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-        AuthRequest request = AuthRequest.builder()
+        UserRequest request = UserRequest.builder()
                 .requestId(requestId)
                 .username(username)
                 .password(password)
-                .action(AuthRequest.Action.AUTHENTICATE)
+                .action(UserRequest.Action.AUTHENTICATE)
                 .build();
         return sendAndReceive(request);
     }
 
     public CompletableFuture<UserResponse> getUserById(Long id) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-        AuthRequest request = AuthRequest.builder()
+        UserRequest request = UserRequest.builder()
                 .requestId(requestId)
                 .userId(String.valueOf(id))
-                .action(AuthRequest.Action.GET_USER_BY_ID)
+                .action(UserRequest.Action.GET_USER_BY_ID)
                 .build();
         return sendAndReceive(request);
     }
 
     public CompletableFuture<UserResponse> getUserByUsername(String username) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-        AuthRequest request = AuthRequest.builder()
+        UserRequest request = UserRequest.builder()
                 .requestId(requestId)
                 .username(username)
-                .action(AuthRequest.Action.GET_USER_BY_USERNAME)
+                .action(UserRequest.Action.GET_USER_BY_USERNAME)
                 .build();
         return sendAndReceive(request);
     }
 
     public CompletableFuture<UserResponse> updateUser(Long userId, Map<String, Object> updates) throws JsonProcessingException {
         String requestId = UUID.randomUUID().toString();
-        AuthRequest request = AuthRequest.builder()
+        UserRequest request = UserRequest.builder()
                 .requestId(requestId)
                 .userId(userId.toString())
                 .updates(updates)
-                .action(AuthRequest.Action.UPDATE_USER)
+                .action(UserRequest.Action.UPDATE_USER)
                 .build();
         return sendAndReceive(request);
     }
 
-    private CompletableFuture<UserResponse> sendAndReceive(AuthRequest request) throws JsonProcessingException {
+    private CompletableFuture<UserResponse> sendAndReceive(UserRequest request) throws JsonProcessingException {
         CompletableFuture<UserResponse> future = new CompletableFuture<>();
         pendingRequests.put(request.getRequestId(), future);
 

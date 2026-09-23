@@ -1,6 +1,6 @@
 package by.parakhnevich.gateway.kafka.consumer;
 
-import by.parakhnevich.dto.response.user.UserResponse;
+import by.parakhnevich.common.dto.response.user.UserResponse;
 import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;

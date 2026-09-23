@@ -1,4 +1,4 @@
-package by.parakhnevich.dto.response.user;
+package by.parakhnevich.common.dto.response.user;
 
 import lombok.*;
 

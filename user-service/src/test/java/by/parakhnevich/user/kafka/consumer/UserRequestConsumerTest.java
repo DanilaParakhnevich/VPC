@@ -1,7 +1,7 @@
 package by.parakhnevich.user.kafka.consumer;
 
-import by.parakhnevich.dto.request.user.AuthRequest;
-import by.parakhnevich.dto.response.user.UserResponse;
+import by.parakhnevich.common.dto.request.user.UserRequest;
+import by.parakhnevich.common.dto.response.user.UserResponse;
 import by.parakhnevich.user.domain.entity.User;
 import by.parakhnevich.user.repository.UserRepository;
 import by.parakhnevich.user.utils.CustomObjectMapper;
@@ -74,8 +74,8 @@ class UserRequestConsumerTest {
     void shouldRegisterNewUserAndReturnToken() throws Exception {
         String requestId = "req-001";
 
-        AuthRequest request = new AuthRequest();
-        request.setAction(AuthRequest.Action.REGISTER);
+        UserRequest request = new UserRequest();
+        request.setAction(UserRequest.Action.REGISTER);
         request.setUsername("john_doe");
         request.setPassword("secret");
         request.setEmail("john@example.com");
@@ -87,7 +87,7 @@ class UserRequestConsumerTest {
         userEntity.setUsername("john_doe");
         userEntity.setEmail("john@example.com");
         userEntity.setPassword("hashed_secret");
-        when(userMapper.toUser(any(AuthRequest.class))).thenReturn(userEntity);
+        when(userMapper.toUser(any(UserRequest.class))).thenReturn(userEntity);
 
         when(userRepository.findByUsername("john_doe"))
                 .thenReturn(Optional.empty())

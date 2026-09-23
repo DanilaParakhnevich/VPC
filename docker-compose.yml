@@ -3,7 +3,7 @@ services:
     image: confluentinc/cp-kafka:latest
     container_name: broker
     ports:
-      - "9092:9092"
+      - "${KAFKA_PORT:-9092}:9092"
     healthcheck:
       test: kafka-topics --bootstrap-server localhost:9092 --list
       interval: 30s
@@ -25,6 +25,22 @@ services:
     networks:
       - broker-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - broker-network
+
   gateway-service:
     build:
       context: .
@@ -43,7 +59,6 @@ services:
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
       - "${GATEWAY_SERVICE_SERVER_PORT:-8080}:8080"
-      - "${GATEWAY_SERVICE_ACTUATOR_PORT:-8081}:8081"
       - "${GATEWAY_SERVICE_DEBUGGER_PORT:-5005}:5005"
     volumes:
       - gateway_logs:/var/log/gateway-service
@@ -99,7 +114,7 @@ services:
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
       - "${USER_SERVICE_DEBUGGER_PORT:-5006}:5005"
-      - "${USER_SERVICE_SERVER_PORT:-8082}:8081"
+      - "${USER_SERVICE_SERVER_PORT:-8082}:8080"
     volumes:
       - user_logs:/var/log/user-service
     healthcheck:
@@ -155,7 +170,7 @@ services:
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
       - "5007:5005"
-      - "${MUSIC_SERVICE_SERVER_PORT:-8083}:8081"
+      - "${MUSIC_SERVICE_SERVER_PORT:-8083}:8080"
     volumes:
       - music_logs:/var/log/music-service
     healthcheck:
@@ -168,17 +183,52 @@ services:
       - music-network
       - broker-network
 
+  media-service:
+    build:
+      context: .
+      dockerfile: media-service/Dockerfile
+    container_name: media-service
+    depends_on:
+      redis:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVER: broker:9092
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      MEDIA_STORAGE_DIR: /data/media
+      LOG_LEVEL: ${MEDIA_LOG_LEVEL:-DEBUG}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    ports:
+      - "${MEDIA_SERVICE_DEBUGGER_PORT:-5008}:5005"
+      - "${MEDIA_SERVICE_SERVER_PORT:-8084}:8080"
+    volumes:
+      - media_data:/data/media
+      - media_logs:/var/log/media-service
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/q/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - broker-network
+
 volumes:
+  redis_data:
+  gateway_logs:
   user_postgres_data:
   music_postgres_data:
+  media_data:
   user_logs:
   music_logs:
-  gateway_logs:
+  media-logs:
 
 networks:
+  broker-network:
+    driver: bridge
   user-network:
     driver: bridge
   music-network:
-    driver: bridge
-  broker-network:
     driver: bridge

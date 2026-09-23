@@ -1,4 +1,4 @@
-package by.parakhnevich.controller;
+package by.parakhnevich.media.controller;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -13,15 +13,23 @@ import java.io.File;
 /**
  * Created by agallochum on 2026-09-16
  */
-@Path("/extensions")
+@Path("/media")
 @RegisterRestClient
 public class MediaController {
 
     @POST
-    @Path("/multipart")
+    @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public String sendMultipart(@MultipartForm File file) {
+        return null;
+    }
+
+    @POST
+    @Path("/load")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String receiveMultipart(@MultipartForm File file) {
         return null;
     }
 }

@@ -1,6 +1,6 @@
 package by.parakhnevich.gateway.controller;
 
-import by.parakhnevich.dto.response.user.UserResponse;
+import by.parakhnevich.common.dto.response.user.UserResponse;
 import by.parakhnevich.gateway.domain.dto.request.LoginRequestDto;
 import by.parakhnevich.gateway.domain.dto.request.SignUpRequestDto;
 import by.parakhnevich.gateway.domain.dto.response.AuthResponseDto;
@@ -10,7 +10,6 @@ import by.parakhnevich.gateway.util.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static by.parakhnevich.dto.response.user.UserResponse.ErrorMessage.*;
+import static by.parakhnevich.common.dto.response.user.UserResponse.ErrorMessage.NONE;
 
 /**
  * Created by agallochum on 2026-05-12

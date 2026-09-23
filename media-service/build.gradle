@@ -27,6 +27,10 @@ dependencies {
     implementation "io.quarkus:quarkus-rest"
     implementation "io.quarkus:quarkus-rest-jsonb"
     implementation 'io.quarkus:quarkus-resteasy-multipart'
+
+    // REDIS
+    implementation("io.quarkus:quarkus-redis-client")
+
     // Quarkus core
     implementation 'io.quarkus:quarkus-arc'
 

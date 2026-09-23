@@ -1,4 +1,4 @@
-package by.parakhnevich.dto.request.user;
+package by.parakhnevich.common.dto.request.user;
 
 import lombok.*;
 
@@ -14,7 +14,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthRequest {
+public class UserRequest {
     private String requestId;
     private String email;
     private String userId;

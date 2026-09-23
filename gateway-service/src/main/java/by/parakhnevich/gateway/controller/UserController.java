@@ -1,6 +1,6 @@
 package by.parakhnevich.gateway.controller;
 
-import by.parakhnevich.dto.response.user.UserResponse;
+import by.parakhnevich.common.dto.response.user.UserResponse;
 import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

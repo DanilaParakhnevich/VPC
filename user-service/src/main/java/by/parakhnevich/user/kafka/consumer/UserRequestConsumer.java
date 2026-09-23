@@ -1,7 +1,7 @@
 package by.parakhnevich.user.kafka.consumer;
 
-import by.parakhnevich.dto.request.user.AuthRequest;
-import by.parakhnevich.dto.response.user.UserResponse;
+import by.parakhnevich.common.dto.request.user.UserRequest;
+import by.parakhnevich.common.dto.response.user.UserResponse;
 import by.parakhnevich.user.kafka.exception.BadCredentialsException;
 import by.parakhnevich.user.kafka.exception.UserAlreadyExistsException;
 import by.parakhnevich.user.kafka.exception.UserNotFoundException;
@@ -50,7 +50,7 @@ public class UserRequestConsumer {
     @Incoming("users-request")
     @Transactional
     public void consume(String userRequestStr) throws JsonProcessingException {
-        var userRequest = objectMapper.readValue(userRequestStr, AuthRequest.class);
+        var userRequest = objectMapper.readValue(userRequestStr, UserRequest.class);
 
         try {
             var user = switch (userRequest.getAction()) {
@@ -84,28 +84,28 @@ public class UserRequestConsumer {
 
     }
 
-    public UserResponse register(AuthRequest authRequest) {
+    public UserResponse register(UserRequest userRequest) {
         try {
-            var user = userMapper.toUser(authRequest);
-            user.setPassword(passwordHasher.hash(authRequest.getPassword()));
+            var user = userMapper.toUser(userRequest);
+            user.setPassword(passwordHasher.hash(userRequest.getPassword()));
             if (userRepository.findByUsername(user.getUsername()).isPresent()
                     || userRepository.findByEmail(user.getEmail()).isPresent()) {
                 throw new UserAlreadyExistsException();
             } else {
                 userRepository.persist(user);
-                return authenticate(authRequest);
+                return authenticate(userRequest);
             }
         } catch (UserNotFoundException e) {
             throw new RuntimeException(e.getMessage());
         }
     }
 
-    public UserResponse authenticate(AuthRequest authRequest) {
-        var user = userRepository.findByUsername(authRequest.getUsername());
+    public UserResponse authenticate(UserRequest userRequest) {
+        var user = userRepository.findByUsername(userRequest.getUsername());
 
         if (user.isPresent()) {
-            if (passwordHasher.matches(authRequest.getPassword(), user.get().getPassword())) {
-                String token = jwtService.generateToken(authRequest.getUsername());
+            if (passwordHasher.matches(userRequest.getPassword(), user.get().getPassword())) {
+                String token = jwtService.generateToken(userRequest.getUsername());
                 UserResponse response = userMapper.toUserResponse(user.get());
                 var updateTime = ZonedDateTime.now();
                 userRepository.updateLastLoginAt(user.get().getUsername(), updateTime);
@@ -120,12 +120,12 @@ public class UserRequestConsumer {
         }
     }
 
-    public UserResponse update(AuthRequest authRequest) {
+    public UserResponse update(UserRequest userRequest) {
         throw new UnsupportedOperationException("Update not implemented yet");
     }
 
-    public UserResponse getById(AuthRequest authRequest) {
-        var user = userRepository.findByIdOptional(Long.parseLong(authRequest.getUserId()));
+    public UserResponse getById(UserRequest userRequest) {
+        var user = userRepository.findByIdOptional(Long.parseLong(userRequest.getUserId()));
         if (user.isPresent()) {
             return userMapper.toUserResponse(user.get());
         } else {
@@ -133,8 +133,8 @@ public class UserRequestConsumer {
         }
     }
 
-    public UserResponse getByUsername(AuthRequest authRequest) {
-        var user = userRepository.findByUsername(authRequest.getUsername());
+    public UserResponse getByUsername(UserRequest userRequest) {
+        var user = userRepository.findByUsername(userRequest.getUsername());
         if (user.isPresent()) {
             return userMapper.toUserResponse(user.get());
         } else {
