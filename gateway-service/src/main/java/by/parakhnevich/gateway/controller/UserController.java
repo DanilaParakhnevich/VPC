@@ -2,6 +2,7 @@ package by.parakhnevich.gateway.controller;
 
 import by.parakhnevich.common.dto.request.user.UserRequest;
 import by.parakhnevich.common.dto.response.user.UserResponse;
+import by.parakhnevich.gateway.domain.dto.request.UpdateUserRequestDto;
 import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -94,7 +95,7 @@ public class UserController {
             @ApiResponse(responseCode = "504", description = "user-service did not respond", content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal error", content = @Content)
     })
-    @GetMapping({"", "/"})
+    @GetMapping()
     public ResponseEntity<? extends UserResponse> getAllUsers(
             @Parameter(description = "Page number (0-based)", example = "0")
             @RequestParam(defaultValue = "0") int page,
@@ -127,7 +128,7 @@ public class UserController {
             summary = "Update user",
             description = "Partial update: provided fields are overwritten, "
                     + "null / missing ones stay unchanged. "
-                    + "Unknown fields ? 400 Bad Request."
+                    + "Unknown fields - 400 Bad Request."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Updated",
@@ -146,13 +147,12 @@ public class UserController {
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Fields to update",
                     required = true,
-                    content = @Content(schema = @Schema(implementation = UserRequest.Update.class)))
-            @RequestBody UserRequest.Update updateRequest) {
+                    content = @Content(schema = @Schema(implementation = UpdateUserRequestDto.class)))
+            @RequestBody UpdateUserRequestDto updateRequest) {
 
         try {
-            Map<String, Object> updates = updateRequest.updates() != null
-                    ? updateRequest.updates()
-                    : Map.of();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> updates = objectMapper.convertValue(updateRequest, Map.class);
 
             Set<String> unknownFields = updates.keySet().stream()
                     .filter(k -> !ALLOWED_UPDATE_FIELDS.contains(k))
@@ -162,7 +162,6 @@ public class UserController {
                 LOGGER.warn("updateUser({}) — unknown fields: {}", userId, unknownFields);
                 return ResponseEntity.badRequest()
                         .body(UserResponse.ErrorResponse.builder()
-                                .requestId(updateRequest.requestId())
                                 .responseCode(UserResponse.ResponseCode.BAD_REQUEST)
                                 .message("Unknown fields: " + unknownFields)
                                 .build());
