@@ -1,6 +1,5 @@
 package by.parakhnevich.common.dto.request.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Builder;
@@ -20,27 +19,20 @@ import java.util.UUID;
         @JsonSubTypes.Type(value = UserRequest.Authenticate.class,  name = "AUTHENTICATE"),
         @JsonSubTypes.Type(value = UserRequest.GetById.class,       name = "GET_BY_ID"),
         @JsonSubTypes.Type(value = UserRequest.GetByUsername.class, name = "GET_BY_USERNAME"),
-        @JsonSubTypes.Type(value = UserRequest.UserFilter.class,    name = "GET_ALL"),
-        @JsonSubTypes.Type(value = UserRequest.Update.class,        name = "UPDATE_USER"),
+        @JsonSubTypes.Type(value = UserRequest.GetAll.class,    name = "GET_ALL"),
+        @JsonSubTypes.Type(value = UserRequest.Update.class,        name = "UPDATE"),
 })
 public sealed interface UserRequest permits
         UserRequest.Register,
         UserRequest.Authenticate,
         UserRequest.GetById,
         UserRequest.GetByUsername,
-        UserRequest.UserFilter,
+        UserRequest.GetAll,
         UserRequest.Update {
 
     String requestId();
 
     ZonedDateTime dateTime();
-
-    @JsonIgnore
-    Action action();
-
-    enum Action {
-        REGISTER, AUTHENTICATE, GET_BY_ID, GET_BY_USERNAME, GET_ALL, UPDATE_USER
-    }
 
     @Builder @With
     record Register(
@@ -54,7 +46,6 @@ public sealed interface UserRequest permits
             if (requestId == null) requestId = UUID.randomUUID().toString();
             if (dateTime  == null) dateTime  = ZonedDateTime.now();
         }
-        @Override public Action action() { return Action.REGISTER; }
     }
 
     @Builder @With
@@ -68,7 +59,6 @@ public sealed interface UserRequest permits
             if (requestId == null) requestId = UUID.randomUUID().toString();
             if (dateTime  == null) dateTime  = ZonedDateTime.now();
         }
-        @Override public Action action() { return Action.AUTHENTICATE; }
     }
 
     @Builder @With
@@ -81,7 +71,6 @@ public sealed interface UserRequest permits
             if (requestId == null) requestId = UUID.randomUUID().toString();
             if (dateTime  == null) dateTime  = ZonedDateTime.now();
         }
-        @Override public Action action() { return Action.GET_BY_ID; }
     }
 
     @Builder @With
@@ -94,11 +83,10 @@ public sealed interface UserRequest permits
             if (requestId == null) requestId = UUID.randomUUID().toString();
             if (dateTime  == null) dateTime  = ZonedDateTime.now();
         }
-        @Override public Action action() { return Action.GET_BY_USERNAME; }
     }
 
     @Builder @With
-    record UserFilter(
+    record GetAll(
             String requestId,
             Integer page,
             Integer size,
@@ -108,13 +96,12 @@ public sealed interface UserRequest permits
             ZonedDateTime createdBefore,
             ZonedDateTime dateTime
     ) implements UserRequest {
-        public UserFilter {
+        public GetAll {
             if (requestId == null) requestId = UUID.randomUUID().toString();
             if (dateTime  == null) dateTime  = ZonedDateTime.now();
             if (page      == null) page      = 0;
             if (size      == null || size <= 0) size = 20;
         }
-        @Override public Action action() { return Action.GET_ALL; }
     }
 
     @Builder @With
@@ -128,6 +115,5 @@ public sealed interface UserRequest permits
             if (requestId == null) requestId = UUID.randomUUID().toString();
             if (dateTime  == null) dateTime  = ZonedDateTime.now();
         }
-        @Override public Action action() { return Action.UPDATE_USER; }
     }
 }

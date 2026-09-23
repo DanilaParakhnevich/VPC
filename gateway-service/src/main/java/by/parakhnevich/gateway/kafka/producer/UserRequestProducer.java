@@ -67,7 +67,7 @@ public class UserRequestProducer {
     public CompletableFuture<UserResponse> getAllUsers(int page, int size,
                                                        String emailLike, String usernameLike)
             throws JsonProcessingException {
-        return sendAndReceive(UserRequest.UserFilter.builder()
+        return sendAndReceive(UserRequest.GetAll.builder()
                 .page(page)
                 .size(size)
                 .emailLike(emailLike)
@@ -95,7 +95,7 @@ public class UserRequestProducer {
                 LOGGER.warn("Request timeout: {}", request.requestId());
                 pending.complete(UserResponse.ErrorResponse.builder()
                         .requestId(request.requestId())
-                        .errorMessage(UserResponse.ErrorMessage.TIMEOUT)
+                        .responseCode(UserResponse.ResponseCode.TIMEOUT)
                         .message("user-service did not respond")
                         .build());
             }

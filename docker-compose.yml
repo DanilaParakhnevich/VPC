@@ -63,7 +63,7 @@ services:
     volumes:
       - gateway_logs:/var/log/gateway-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -118,7 +118,7 @@ services:
     volumes:
       - user_logs:/var/log/user-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -174,7 +174,7 @@ services:
     volumes:
       - music_logs:/var/log/music-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
       timeout: 5s
       retries: 3

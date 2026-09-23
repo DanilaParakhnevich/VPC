@@ -2,6 +2,7 @@ package by.parakhnevich.user.kafka.consumer;
 
 import by.parakhnevich.common.dto.request.user.UserRequest;
 import by.parakhnevich.common.dto.response.user.UserResponse;
+import by.parakhnevich.user.domain.entity.Role;
 import by.parakhnevich.user.kafka.exception.BadCredentialsException;
 import by.parakhnevich.user.kafka.exception.UserAlreadyExistsException;
 import by.parakhnevich.user.kafka.exception.UserNotFoundException;
@@ -11,10 +12,10 @@ import by.parakhnevich.user.utils.JwtService;
 import by.parakhnevich.user.utils.PasswordHasher;
 import by.parakhnevich.user.utils.mapper.UserMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,7 +62,7 @@ public class UserRequestConsumer {
                 case UserRequest.Authenticate a  -> authenticate(a);
                 case UserRequest.GetById g       -> getById(g);
                 case UserRequest.GetByUsername g -> getByUsername(g);
-                case UserRequest.UserFilter f    -> getAllPageable(f);
+                case UserRequest.GetAll f    -> getAllPageable(f);
                 case UserRequest.Update u        -> update(u);
             };
 
@@ -69,19 +70,19 @@ public class UserRequestConsumer {
             emitter.send(objectMapper.writeValueAsString(response));
         } catch (UserAlreadyExistsException e) {
             LOGGER.error(e.getMessage(), e);
-            sendError(UserResponse.ErrorMessage.ALREADY_EXISTS, userRequest);
+            sendError(UserResponse.ResponseCode.ALREADY_EXISTS, userRequest);
         } catch (BadCredentialsException e) {
             LOGGER.error(e.getMessage(), e);
-            sendError(UserResponse.ErrorMessage.BAD_PASSWORD, userRequest);
+            sendError(UserResponse.ResponseCode.BAD_PASSWORD, userRequest);
         } catch (UserNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
-            sendError(UserResponse.ErrorMessage.NOT_FOUND, userRequest);
+            sendError(UserResponse.ResponseCode.NOT_FOUND, userRequest);
         } catch (JsonProcessingException e) {
             LOGGER.error("Failed to parse user request", e);
-            sendError(UserResponse.ErrorMessage.BAD_REQUEST, userRequest);
+            sendError(UserResponse.ResponseCode.BAD_REQUEST, userRequest);
         } catch (Exception e) {
             LOGGER.error("Unexpected error", e);
-            sendError(UserResponse.ErrorMessage.BAD_REQUEST, userRequest);
+            sendError(UserResponse.ResponseCode.BAD_REQUEST, userRequest);
         }
     }
 
@@ -130,7 +131,7 @@ public class UserRequestConsumer {
                 .orElseThrow(UserNotFoundException::new);
     }
 
-    public UserResponse.Page getAllPageable(UserRequest.UserFilter req) {
+    public UserResponse.Page getAllPageable(UserRequest.GetAll req) {
         var jpql = new StringBuilder("1=1");
         Map<String, Object> params = new HashMap<>();
 
@@ -152,7 +153,7 @@ public class UserRequestConsumer {
         }
 
         var query = userRepository.find(jpql.toString(), params);
-        query.page(Page.of(req.page(), req.size()));
+        query.page(io.quarkus.panache.common.Page.of(req.page(), req.size()));
 
         var content = query.list().stream()
                 .map(u -> userMapper.toSingle(req.requestId(), u))
@@ -169,21 +170,79 @@ public class UserRequestConsumer {
     }
 
     public UserResponse.Single update(UserRequest.Update req) {
-        throw new UnsupportedOperationException("Update not implemented yet");
+        var user = userRepository.findByIdOptional(Long.parseLong(req.userId()))
+                .orElseThrow(UserNotFoundException::new);
+
+        var updates = req.updates();
+        if (updates == null || updates.isEmpty()) {
+            return userMapper.toSingle(req.requestId(), user);
+        }
+
+        if (updates.containsKey("username")) {
+            var newUsername = String.valueOf(updates.remove("username"));
+            if (newUsername.isBlank()) {
+                throw new BadCredentialsException(); // или отдельный BadRequestException
+            }
+            if (!newUsername.equals(user.getUsername())
+                    && userRepository.findByUsername(newUsername).isPresent()) {
+                throw new UserAlreadyExistsException();
+            }
+            user.setUsername(newUsername);
+        }
+
+        if (updates.containsKey("email")) {
+            var newEmail = String.valueOf(updates.remove("email"));
+            if (newEmail.isBlank()) {
+                throw new BadCredentialsException();
+            }
+            if (!newEmail.equals(user.getEmail())
+                    && userRepository.findByEmail(newEmail).isPresent()) {
+                throw new UserAlreadyExistsException();
+            }
+            user.setEmail(newEmail);
+        }
+
+        if (updates.containsKey("password")) {
+            var rawPassword = String.valueOf(updates.remove("password"));
+            if (rawPassword.isBlank()) {
+                throw new BadCredentialsException();
+            }
+            user.setPassword(passwordHasher.hash(rawPassword));
+        }
+
+        if (updates.containsKey("avatarUrl")) {
+            user.setAvatarUrl((String) updates.remove("avatarUrl"));
+        }
+
+        if (updates.containsKey("role")) {
+            var role = String.valueOf(updates.remove("role"));
+            if (role.isBlank()) {
+                throw new BadCredentialsException();
+            }
+            user.setRole(Role.valueOf(role));
+        }
+
+        if (!updates.isEmpty()) {
+            throw new BadRequestException();
+        }
+
+        userRepository.getEntityManager().flush();
+
+        return userMapper.toSingle(req.requestId(), user);
     }
 
     // ---------- helpers ----------
 
-    private void sendError(UserResponse.ErrorMessage errorMessage, UserRequest request) {
+    private void sendError(UserResponse.ResponseCode responseCode, UserRequest request) {
         if (request == null) {
-            LOGGER.warn("Cannot send error {} - request not parsed", errorMessage);
+            LOGGER.warn("Cannot send error {} - request not parsed", responseCode);
             return;
         }
         try {
             emitter.send(objectMapper.writeValueAsString(
                     UserResponse.ErrorResponse.builder()
                             .requestId(request.requestId())
-                            .errorMessage(errorMessage)
+                            .responseCode(responseCode)
                             .build()));
         } catch (JsonProcessingException e) {
             LOGGER.error("Failed to serialize error response", e);

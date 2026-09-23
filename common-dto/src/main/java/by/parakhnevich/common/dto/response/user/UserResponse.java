@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.With;
 
 import java.time.ZonedDateTime;
-import java.util.List;
 
 /**
  * Created by agallochum on 2026-05-16
@@ -16,7 +15,7 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "responseType", visible = false)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = UserResponse.Single.class,        name = "SINGLE"),
-        @JsonSubTypes.Type(value = UserResponse.Page.class,          name = "PAGE"),
+        @JsonSubTypes.Type(value = UserResponse.Page.class,          name = "Page"),
         @JsonSubTypes.Type(value = UserResponse.ErrorResponse.class, name = "ERROR"),
 })
 public sealed interface UserResponse permits
@@ -26,27 +25,27 @@ public sealed interface UserResponse permits
 
     String requestId();
 
-    ErrorMessage errorMessage();
+    ResponseCode responseCode();
 
     ZonedDateTime dateTime();
 
     @JsonIgnore
     default boolean isSuccess() {
-        return errorMessage() == ErrorMessage.NONE;
+        return responseCode() == ResponseCode.OK;
     }
 
     @Getter
-    enum ErrorMessage {
+    enum ResponseCode {
         NOT_FOUND(404),
         BAD_PASSWORD(400),
         BAD_REQUEST(400),
         ALREADY_EXISTS(409),
         TIMEOUT(408),
-        NONE(200);
+        OK(200);
 
         private final int code;
 
-        ErrorMessage(int code) { this.code = code; }
+        ResponseCode(int code) { this.code = code; }
     }
 
     @Builder @With
@@ -58,13 +57,13 @@ public sealed interface UserResponse permits
             String role,
             String accessToken,
             String avatarUrl,
-            ErrorMessage errorMessage,
+            ResponseCode responseCode,
             ZonedDateTime dateTime,
             ZonedDateTime lastLoginAt,
             ZonedDateTime createdAt
     ) implements UserResponse {
         public Single {
-            if (errorMessage == null) errorMessage = ErrorMessage.NONE;
+            if (responseCode == null) responseCode = ResponseCode.OK;
             if (dateTime     == null) dateTime     = ZonedDateTime.now();
         }
     }
@@ -72,30 +71,30 @@ public sealed interface UserResponse permits
     @Builder @With
     record Page(
             String requestId,
-            List<Single> content,
+            java.util.List<Single> content,
             int page,
             int size,
             long totalElements,
             int totalPages,
-            ErrorMessage errorMessage,
+            ResponseCode responseCode,
             ZonedDateTime dateTime
     ) implements UserResponse {
         public Page {
-            if (errorMessage == null) errorMessage = ErrorMessage.NONE;
+            if (responseCode == null) responseCode = ResponseCode.OK;
             if (dateTime     == null) dateTime     = ZonedDateTime.now();
-            if (content      == null) content      = List.of();
+            if (content      == null) content      = java.util.List.of();
         }
     }
 
     @Builder @With
     record ErrorResponse(
             String requestId,
-            ErrorMessage errorMessage,
+            ResponseCode responseCode,
             String message,
             ZonedDateTime dateTime
     ) implements UserResponse {
         public ErrorResponse {
-            if (errorMessage == null) errorMessage = ErrorMessage.BAD_REQUEST;
+            if (responseCode == null) responseCode = ResponseCode.BAD_REQUEST;
             if (dateTime     == null) dateTime     = ZonedDateTime.now();
         }
     }

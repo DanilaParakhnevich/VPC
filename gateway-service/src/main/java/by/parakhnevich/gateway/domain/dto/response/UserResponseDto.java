@@ -17,7 +17,6 @@ import java.util.UUID;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-@Builder
 public class UserResponseDto {
 
     private Long id;
