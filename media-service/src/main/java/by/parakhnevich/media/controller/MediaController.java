@@ -6,7 +6,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import org.jboss.resteasy.reactive.RestForm;
 
 import java.io.File;
 
@@ -21,7 +21,7 @@ public class MediaController {
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public String sendMultipart(@MultipartForm File file) {
+    public String sendMultipart(@RestForm("file") File file) {
         return null;
     }
 
@@ -29,7 +29,7 @@ public class MediaController {
     @Path("/load")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public String receiveMultipart(@MultipartForm File file) {
+    public String receiveMultipart(@RestForm("file") File file) {
         return null;
     }
 }
