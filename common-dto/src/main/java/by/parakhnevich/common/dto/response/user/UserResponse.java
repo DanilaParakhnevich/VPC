@@ -1,5 +1,6 @@
 package by.parakhnevich.common.dto.response.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Builder;
@@ -29,6 +30,7 @@ public sealed interface UserResponse permits
 
     ZonedDateTime dateTime();
 
+    @JsonIgnore
     default boolean isSuccess() {
         return errorMessage() == ErrorMessage.NONE;
     }
