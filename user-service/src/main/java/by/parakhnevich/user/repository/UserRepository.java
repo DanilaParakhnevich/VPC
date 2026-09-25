@@ -4,6 +4,7 @@ import by.parakhnevich.user.domain.entity.User;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import io.quarkus.panache.common.Parameters;
 import jakarta.enterprise.context.ApplicationScoped;
+
 import java.time.ZonedDateTime;
 import java.util.Optional;
 

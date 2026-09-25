@@ -1,8 +1,8 @@
 package by.parakhnevich.gateway.util.mapper;
 
 import by.parakhnevich.common.dto.response.user.UserResponse;
-import by.parakhnevich.gateway.domain.dto.response.AuthResponseDto;
-import by.parakhnevich.gateway.domain.dto.response.SignUpResponseDto;
+import by.parakhnevich.gateway.domain.dto.response.user.AuthResponseDto;
+import by.parakhnevich.gateway.domain.dto.response.user.SignUpResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

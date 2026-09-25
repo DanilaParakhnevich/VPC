@@ -15,9 +15,8 @@ public sealed interface GenreRequest extends MusicRequest permits
     @Builder @With
     record Create(
             String requestId,
-            String name,
-            String description,
-            String geo
+            String title,
+            String description
     ) implements GenreRequest {
         public Create {
             if (requestId == null) requestId = UUID.randomUUID().toString();
@@ -27,9 +26,7 @@ public sealed interface GenreRequest extends MusicRequest permits
     @Builder @With
     record GetById(
             String requestId,
-            String name,
-            String description,
-            String geo
+            Long id
     ) implements GenreRequest {
         public GetById {
             if (requestId == null) requestId = UUID.randomUUID().toString();
@@ -41,8 +38,7 @@ public sealed interface GenreRequest extends MusicRequest permits
             String requestId,
             Integer page,
             Integer size,
-            String nameLike,
-            String geoLike
+            String titleLike
     ) implements GenreRequest {
         public GetAll {
             if (requestId == null) requestId = UUID.randomUUID().toString();

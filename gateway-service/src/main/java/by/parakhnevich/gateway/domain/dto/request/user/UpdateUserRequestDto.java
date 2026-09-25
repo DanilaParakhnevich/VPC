@@ -1,12 +1,8 @@
-package by.parakhnevich.gateway.domain.dto.request;
+package by.parakhnevich.gateway.domain.dto.request.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Created by agallochum on 2026-05-23

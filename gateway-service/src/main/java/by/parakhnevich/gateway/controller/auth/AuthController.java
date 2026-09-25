@@ -1,10 +1,10 @@
-package by.parakhnevich.gateway.controller;
+package by.parakhnevich.gateway.controller.auth;
 
 import by.parakhnevich.common.dto.response.user.UserResponse;
-import by.parakhnevich.gateway.domain.dto.request.LoginRequestDto;
-import by.parakhnevich.gateway.domain.dto.request.SignUpRequestDto;
-import by.parakhnevich.gateway.domain.dto.response.AuthResponseDto;
-import by.parakhnevich.gateway.domain.dto.response.SignUpResponseDto;
+import by.parakhnevich.gateway.domain.dto.request.user.LoginRequestDto;
+import by.parakhnevich.gateway.domain.dto.request.user.SignUpRequestDto;
+import by.parakhnevich.gateway.domain.dto.response.user.AuthResponseDto;
+import by.parakhnevich.gateway.domain.dto.response.user.SignUpResponseDto;
 import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
 import by.parakhnevich.gateway.util.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;

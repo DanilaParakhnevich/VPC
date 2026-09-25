@@ -3,6 +3,7 @@ package by.parakhnevich.common.dto.request.music;
 import lombok.Builder;
 import lombok.With;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -16,8 +17,8 @@ public sealed interface MusicianRequest extends MusicRequest permits
     record Create(
             String requestId,
             String name,
-            String description,
-            String geo
+            String imageId,
+            LocalDate birthDate
     ) implements MusicianRequest {
         public Create {
             if (requestId == null) requestId = UUID.randomUUID().toString();
@@ -27,9 +28,7 @@ public sealed interface MusicianRequest extends MusicRequest permits
     @Builder @With
     record GetById(
             String requestId,
-            String name,
-            String description,
-            String geo
+            Long id
     ) implements MusicianRequest {
         public GetById {
             if (requestId == null) requestId = UUID.randomUUID().toString();
@@ -42,7 +41,7 @@ public sealed interface MusicianRequest extends MusicRequest permits
             Integer page,
             Integer size,
             String nameLike,
-            String geoLike
+            Long bandId
     ) implements MusicianRequest {
         public GetAll {
             if (requestId == null) requestId = UUID.randomUUID().toString();

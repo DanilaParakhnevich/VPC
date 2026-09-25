@@ -1,7 +1,6 @@
 package by.parakhnevich.music.repository;
 
 import by.parakhnevich.music.domain.entity.Band;
-import by.parakhnevich.music.domain.entity.Collection;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 
 import java.util.List;

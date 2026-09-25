@@ -1,8 +1,7 @@
-package by.parakhnevich.gateway.controller;
+package by.parakhnevich.gateway.controller.user;
 
-import by.parakhnevich.common.dto.request.user.UserRequest;
 import by.parakhnevich.common.dto.response.user.UserResponse;
-import by.parakhnevich.gateway.domain.dto.request.UpdateUserRequestDto;
+import by.parakhnevich.gateway.domain.dto.request.user.UpdateUserRequestDto;
 import by.parakhnevich.gateway.kafka.producer.UserRequestProducer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;

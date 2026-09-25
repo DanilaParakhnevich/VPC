@@ -21,8 +21,8 @@ public class Track extends BaseEntity {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "track_path")
-    private String trackPath;
+    @Column(name = "track_path_id")
+    private String trackPathId;
 
     @Column(name = "duration")
     private int duration;

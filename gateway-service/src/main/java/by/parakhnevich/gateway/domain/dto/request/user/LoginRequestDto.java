@@ -1,4 +1,4 @@
-package by.parakhnevich.gateway.domain.dto.request;
+package by.parakhnevich.gateway.domain.dto.request.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

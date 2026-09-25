@@ -86,8 +86,6 @@ public class UserRequestConsumer {
         }
     }
 
-    // ---------- handlers ----------
-
     public UserResponse.Single register(UserRequest.Register req) {
         if (userRepository.findByUsername(req.username()).isPresent()
                 || userRepository.findByEmail(req.email()).isPresent()) {
@@ -230,8 +228,6 @@ public class UserRequestConsumer {
 
         return userMapper.toSingle(req.requestId(), user);
     }
-
-    // ---------- helpers ----------
 
     private void sendError(UserResponse.ResponseCode responseCode, UserRequest request) {
         if (request == null) {

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Builder;
 import lombok.With;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -25,10 +26,12 @@ public sealed interface BandRequest extends MusicRequest permits
     @Builder @With
     record Create(
             String requestId,
+            String imageId,
             String name,
             String description,
-            String geo
-    ) implements BandRequest {
+            String geo,
+            List<Integer> genres
+            ) implements BandRequest {
         public Create {
             if (requestId == null) requestId = UUID.randomUUID().toString();
         }
@@ -37,9 +40,7 @@ public sealed interface BandRequest extends MusicRequest permits
     @Builder @With
     record GetById(
             String requestId,
-            String name,
-            String description,
-            String geo
+            Long id
     ) implements BandRequest {
         public GetById {
             if (requestId == null) requestId = UUID.randomUUID().toString();
@@ -52,7 +53,7 @@ public sealed interface BandRequest extends MusicRequest permits
             Integer page,
             Integer size,
             String nameLike,
-            String geoLike
+            String geo
     ) implements BandRequest {
         public GetAll {
             if (requestId == null) requestId = UUID.randomUUID().toString();

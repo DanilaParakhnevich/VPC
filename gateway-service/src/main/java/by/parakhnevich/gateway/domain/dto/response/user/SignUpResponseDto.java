@@ -1,4 +1,4 @@
-package by.parakhnevich.gateway.domain.dto.response;
+package by.parakhnevich.gateway.domain.dto.response.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

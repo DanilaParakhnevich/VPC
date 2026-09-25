@@ -1,11 +1,15 @@
 package by.parakhnevich.music.domain.entity;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
 import java.time.LocalDateTime;
 
 /**

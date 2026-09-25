@@ -3,6 +3,7 @@ package by.parakhnevich.common.dto.request.music;
 import lombok.Builder;
 import lombok.With;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -16,9 +17,13 @@ public sealed interface TrackRequest extends MusicRequest permits
     @With
     record Create(
             String requestId,
-            String name,
-            String description,
-            String geo
+            String title,
+            String trackPathId,
+            Integer duration,
+            List<Long> bandIds,
+            List<Long> albumIds,
+            List<Long> genreIds,
+            List<Long> collectionIds
     ) implements TrackRequest {
         public Create {
             if (requestId == null) requestId = UUID.randomUUID().toString();
@@ -29,9 +34,7 @@ public sealed interface TrackRequest extends MusicRequest permits
     @With
     record GetById(
             String requestId,
-            String name,
-            String description,
-            String geo
+            Long id
     ) implements TrackRequest {
         public GetById {
             if (requestId == null) requestId = UUID.randomUUID().toString();
@@ -44,8 +47,10 @@ public sealed interface TrackRequest extends MusicRequest permits
             String requestId,
             Integer page,
             Integer size,
-            String nameLike,
-            String geoLike
+            String titleLike,
+            Long genreId,
+            Long bandId,
+            Long musicianId
     ) implements TrackRequest {
         public GetAll {
             if (requestId == null) requestId = UUID.randomUUID().toString();
