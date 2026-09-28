@@ -15,12 +15,12 @@ import java.util.UUID;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "action", visible = false)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = UserRequest.Register.class,      name = "REGISTER"),
-        @JsonSubTypes.Type(value = UserRequest.Authenticate.class,  name = "AUTHENTICATE"),
-        @JsonSubTypes.Type(value = UserRequest.GetById.class,       name = "GET_BY_ID"),
+        @JsonSubTypes.Type(value = UserRequest.Register.class, name = "REGISTER"),
+        @JsonSubTypes.Type(value = UserRequest.Authenticate.class, name = "AUTHENTICATE"),
+        @JsonSubTypes.Type(value = UserRequest.GetById.class, name = "GET_BY_ID"),
         @JsonSubTypes.Type(value = UserRequest.GetByUsername.class, name = "GET_BY_USERNAME"),
-        @JsonSubTypes.Type(value = UserRequest.GetAll.class,    name = "GET_ALL"),
-        @JsonSubTypes.Type(value = UserRequest.Update.class,        name = "UPDATE"),
+        @JsonSubTypes.Type(value = UserRequest.GetAll.class, name = "GET_ALL"),
+        @JsonSubTypes.Type(value = UserRequest.Update.class, name = "UPDATE"),
 })
 public sealed interface UserRequest permits
         UserRequest.Register,
@@ -32,7 +32,8 @@ public sealed interface UserRequest permits
 
     String requestId();
 
-    @Builder @With
+    @Builder
+    @With
     record Register(
             String requestId,
             String email,
@@ -44,7 +45,8 @@ public sealed interface UserRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Authenticate(
             String requestId,
             String username,
@@ -55,7 +57,8 @@ public sealed interface UserRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetById(
             String requestId,
             String userId
@@ -65,7 +68,8 @@ public sealed interface UserRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetByUsername(
             String requestId,
             String username
@@ -75,7 +79,8 @@ public sealed interface UserRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetAll(
             String requestId,
             Integer page,
@@ -87,12 +92,13 @@ public sealed interface UserRequest permits
     ) implements UserRequest {
         public GetAll {
             if (requestId == null) requestId = UUID.randomUUID().toString();
-            if (page      == null) page      = 0;
-            if (size      == null || size <= 0) size = 20;
+            if (page == null) page = 0;
+            if (size == null || size <= 0) size = 20;
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Update(
             String requestId,
             String userId,
@@ -101,7 +107,7 @@ public sealed interface UserRequest permits
     ) implements UserRequest {
         public Update {
             if (requestId == null) requestId = UUID.randomUUID().toString();
-            if (dateTime  == null) dateTime  = ZonedDateTime.now();
+            if (dateTime == null) dateTime = ZonedDateTime.now();
         }
     }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 public interface BandMapper {
 
     @Mapping(target = "musicianIds", expression = "java(toMusicianIds(band.getMusicians()))")
-    @Mapping(target = "genreIds",    expression = "java(toGenreIds(band.getGenres()))")
+    @Mapping(target = "genreIds", expression = "java(toGenreIds(band.getGenres()))")
     MusicResponse.BandSingle toSingle(Band band);
 
     default MusicResponse.BandSingle toSingle(String requestId, Band band) {

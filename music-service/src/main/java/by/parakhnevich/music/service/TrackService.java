@@ -61,7 +61,6 @@ public class TrackService {
         }
         if (req.bandId() != null) {
             jpql.append(" and :bandId in (select b.id from Band b join b.tracks t where t.id = id)");
-            // проще: отдельный join. ќставл€ю примерный вариант Ч поправь под свои св€зи.
             params.put("bandId", req.bandId());
         }
         if (req.genreId() != null) {
@@ -92,12 +91,12 @@ public class TrackService {
                 .orElseThrow(() -> new NotFoundException("Track " + req.id() + " not found"));
 
         var u = req.updates();
-        if (u.get("title")       instanceof String title)   track.setTitle(title);
-        if (u.get("trackPathId") instanceof String path)    track.setTrackPathId(path);
-        if (u.get("duration")    instanceof Number dur)     track.setDuration(dur.intValue());
-        if (u.get("bandIds")     instanceof List<?> bandIds)
+        if (u.get("title") instanceof String title) track.setTitle(title);
+        if (u.get("trackPathId") instanceof String path) track.setTrackPathId(path);
+        if (u.get("duration") instanceof Number dur) track.setDuration(dur.intValue());
+        if (u.get("bandIds") instanceof List<?> bandIds)
             track.setBands(bandRepository.list("id in ?1", bandIds));
-        if (u.get("genreIds")    instanceof List<?> genreIds)
+        if (u.get("genreIds") instanceof List<?> genreIds)
             track.setGenres(genreRepository.list("id in ?1", genreIds));
         if (u.get("collectionIds") instanceof List<?> collectionIds)
             track.setCollections(collectionRepository.list("id in ?1", collectionIds));

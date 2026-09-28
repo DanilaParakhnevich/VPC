@@ -20,9 +20,9 @@ public abstract class BaseMusicController {
 
     protected ResponseEntity<? extends MusicResponse> toResponse(MusicResponse response) {
         return switch (response) {
-            case MusicResponse.Deleted d       -> ResponseEntity.status(d.responseCode().getCode()).body(d);
-            case MusicResponse.Single s        -> ResponseEntity.status(s.responseCode().getCode()).body(s);
-            case MusicResponse.Page p          -> ResponseEntity.status(p.responseCode().getCode()).body(p);
+            case MusicResponse.Deleted d -> ResponseEntity.status(d.responseCode().getCode()).body(d);
+            case MusicResponse.Single s -> ResponseEntity.status(s.responseCode().getCode()).body(s);
+            case MusicResponse.Page p -> ResponseEntity.status(p.responseCode().getCode()).body(p);
             case MusicResponse.ErrorResponse e -> ResponseEntity.status(e.responseCode().getCode()).body(e);
         };
     }

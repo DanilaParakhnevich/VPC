@@ -48,21 +48,21 @@ public class MusicRequestConsumer {
             musicRequest = objectMapper.readValue(userRequestStr, MusicRequest.class);
 
             MusicResponse response = switch (musicRequest) {
-                case BandRequest b      -> switch (b) {
+                case BandRequest b -> switch (b) {
                     case BandRequest.Create create -> bandService.create(create);
                     case BandRequest.Delete delete -> bandService.delete(delete);
                     case BandRequest.GetAll getAll -> bandService.getAll(getAll);
                     case BandRequest.GetById getById -> bandService.getById(getById);
                     case BandRequest.Update update -> bandService.update(update);
                 };
-                case CollectionRequest c  -> switch (c) {
+                case CollectionRequest c -> switch (c) {
                     case CollectionRequest.Create create -> collectionService.create(create);
                     case CollectionRequest.Delete delete -> collectionService.delete(delete);
                     case CollectionRequest.GetAll getAll -> collectionService.getAll(getAll);
                     case CollectionRequest.GetById getById -> collectionService.getById(getById);
                     case CollectionRequest.Update update -> collectionService.update(update);
                 };
-                case GenreRequest g       -> switch (g) {
+                case GenreRequest g -> switch (g) {
                     case GenreRequest.Create create -> genreService.create(create);
                     case GenreRequest.Delete delete -> genreService.delete(delete);
                     case GenreRequest.GetAll getAll -> genreService.getAll(getAll);
@@ -76,7 +76,7 @@ public class MusicRequestConsumer {
                     case MusicianRequest.GetById getById -> musicianService.getById(getById);
                     case MusicianRequest.Update update -> musicianService.update(update);
                 };
-                case TrackRequest t    -> switch (t) {
+                case TrackRequest t -> switch (t) {
                     case TrackRequest.Create create -> trackService.create(create);
                     case TrackRequest.Delete delete -> trackService.delete(delete);
                     case TrackRequest.GetAll getAll -> trackService.getAll(getAll);

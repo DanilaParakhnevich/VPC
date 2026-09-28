@@ -13,7 +13,8 @@ public sealed interface MusicianRequest extends MusicRequest permits
         MusicianRequest.Create, MusicianRequest.GetById, MusicianRequest.GetAll,
         MusicianRequest.Update, MusicianRequest.Delete {
 
-    @Builder @With
+    @Builder
+    @With
     record Create(
             String requestId,
             String name,
@@ -25,7 +26,8 @@ public sealed interface MusicianRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetById(
             String requestId,
             Long id
@@ -35,7 +37,8 @@ public sealed interface MusicianRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetAll(
             String requestId,
             Integer page,
@@ -48,7 +51,8 @@ public sealed interface MusicianRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Update(
             String requestId,
             Long id,
@@ -59,7 +63,8 @@ public sealed interface MusicianRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Delete(
             String requestId,
             Long id

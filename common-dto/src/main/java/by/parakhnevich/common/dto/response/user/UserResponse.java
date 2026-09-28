@@ -15,8 +15,8 @@ import java.util.List;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "responseType", visible = false)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = UserResponse.Single.class,        name = "SINGLE"),
-        @JsonSubTypes.Type(value = UserResponse.Page.class,          name = "Page"),
+        @JsonSubTypes.Type(value = UserResponse.Single.class, name = "SINGLE"),
+        @JsonSubTypes.Type(value = UserResponse.Page.class, name = "Page"),
         @JsonSubTypes.Type(value = UserResponse.ErrorResponse.class, name = "ERROR"),
 })
 public sealed interface UserResponse permits
@@ -46,10 +46,13 @@ public sealed interface UserResponse permits
 
         private final int code;
 
-        ResponseCode(int code) { this.code = code; }
+        ResponseCode(int code) {
+            this.code = code;
+        }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Single(
             String requestId,
             String userId,
@@ -65,11 +68,12 @@ public sealed interface UserResponse permits
     ) implements UserResponse {
         public Single {
             if (responseCode == null) responseCode = ResponseCode.OK;
-            if (dateTime     == null) dateTime     = ZonedDateTime.now();
+            if (dateTime == null) dateTime = ZonedDateTime.now();
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Page(
             String requestId,
             List<Single> content,
@@ -82,12 +86,13 @@ public sealed interface UserResponse permits
     ) implements UserResponse {
         public Page {
             if (responseCode == null) responseCode = ResponseCode.OK;
-            if (dateTime     == null) dateTime     = ZonedDateTime.now();
-            if (content      == null) content      = java.util.List.of();
+            if (dateTime == null) dateTime = ZonedDateTime.now();
+            if (content == null) content = java.util.List.of();
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record ErrorResponse(
             String requestId,
             ResponseCode responseCode,
@@ -96,7 +101,7 @@ public sealed interface UserResponse permits
     ) implements UserResponse {
         public ErrorResponse {
             if (responseCode == null) responseCode = ResponseCode.BAD_REQUEST;
-            if (dateTime     == null) dateTime     = ZonedDateTime.now();
+            if (dateTime == null) dateTime = ZonedDateTime.now();
         }
     }
 }

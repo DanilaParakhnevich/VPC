@@ -77,8 +77,8 @@ public class GenreService {
                 .orElseThrow(() -> new NotFoundException("Genre " + req.id() + " not found"));
 
         var u = req.updates();
-        if (u.get("title")       instanceof String title) genre.setTitle(title);
-        if (u.get("description") instanceof String desc)  genre.setDescription(desc);
+        if (u.get("title") instanceof String title) genre.setTitle(title);
+        if (u.get("description") instanceof String desc) genre.setDescription(desc);
 
         return genreMapper.toSingle(req.requestId(), genre);
     }

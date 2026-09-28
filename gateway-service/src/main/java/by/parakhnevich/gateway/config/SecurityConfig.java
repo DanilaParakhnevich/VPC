@@ -34,11 +34,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final JwtAuthFilter jwtAuthFilter;
     @Autowired
     private CustomAuthenticationProvider authProvider;
-
-    private final JwtAuthFilter jwtAuthFilter;
-
     @Autowired
     private List<String> publicUris;
 

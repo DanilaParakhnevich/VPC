@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  */
 @Getter
 @Setter
-@NoArgsConstructor // Обязательно для JPA
+@NoArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @MappedSuperclass
 public abstract class BaseEntity extends PanacheEntity {

@@ -75,9 +75,9 @@ public class MusicianService {
                 .orElseThrow(() -> new NotFoundException("Musician " + req.id() + " not found"));
 
         var u = req.updates();
-        if (u.get("name")      instanceof String name)  musician.setName(name);
-        if (u.get("imageId")   instanceof String img)   musician.setImageId(img);
-        if (u.get("birthDate") instanceof String date)  musician.setBirthDate(LocalDate.parse(date));
+        if (u.get("name") instanceof String name) musician.setName(name);
+        if (u.get("imageId") instanceof String img) musician.setImageId(img);
+        if (u.get("birthDate") instanceof String date) musician.setBirthDate(LocalDate.parse(date));
 
         return musicianMapper.toSingle(req.requestId(), musician);
     }

@@ -24,15 +24,12 @@ public class MusicRequestProducer {
     private static final Logger LOGGER = LogManager.getLogger(MusicRequestProducer.class);
     private static final String TOPIC = "music-request";
     private static final long TIMEOUT_SECONDS = 5;
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     private final Map<String, CompletableFuture<MusicResponse>> pendingRequests = new ConcurrentHashMap<>();
     private final ScheduledExecutorService timeoutScheduler = Executors.newScheduledThreadPool(10);
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public CompletableFuture<MusicResponse> sendAndReceive(MusicRequest request)
             throws JsonProcessingException {

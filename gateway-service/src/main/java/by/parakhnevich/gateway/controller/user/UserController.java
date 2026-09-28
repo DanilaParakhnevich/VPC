@@ -39,17 +39,15 @@ public class UserController {
 
     private static final Set<String> ALLOWED_UPDATE_FIELDS =
             Set.of("username", "email", "password", "avatarUrl", "role");
-
-    @Value("${kafka.timeout:6}")
-    private long brokerTimeout = 6;
-
     private final UserRequestProducer userRequestProducer;
     private final ObjectMapper objectMapper;
+    @Value("${kafka.timeout:6}")
+    private long brokerTimeout = 6;
 
     @Operation(
             summary = "Find user by ID or username",
             description = "Returns a single user. Provide **exactly one** parameter: "
-                    + "`userId` or `username`. If both or neither are provided — 400."
+                    + "`userId` or `username`. If both or neither are provided ï¿½ 400."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User found",
@@ -162,7 +160,7 @@ public class UserController {
                     .collect(Collectors.toSet());
 
             if (!unknownFields.isEmpty()) {
-                LOGGER.warn("updateUser({}) — unknown fields: {}", userId, unknownFields);
+                LOGGER.warn("updateUser({}) ï¿½ unknown fields: {}", userId, unknownFields);
                 return ResponseEntity.badRequest()
                         .body(UserResponse.ErrorResponse.builder()
                                 .responseCode(UserResponse.ResponseCode.BAD_REQUEST)

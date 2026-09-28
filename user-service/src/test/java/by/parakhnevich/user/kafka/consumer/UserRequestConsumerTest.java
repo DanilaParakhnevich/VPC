@@ -28,7 +28,7 @@
 //import static org.mockito.ArgumentMatchers.*;
 //import static org.mockito.Mockito.when;
 //
-///**
+/// **
 // * Created by agallochum on 2026-09-03
 // */
 //@QuarkusTest

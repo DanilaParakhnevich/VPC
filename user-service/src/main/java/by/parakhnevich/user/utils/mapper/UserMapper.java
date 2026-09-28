@@ -17,10 +17,10 @@ public interface UserMapper {
     User toUser(UserRequest.Register request);
 
     @Mapping(source = "id", target = "userId")
-    @Mapping(target = "requestId",    ignore = true)
-    @Mapping(target = "accessToken",  ignore = true)
+    @Mapping(target = "requestId", ignore = true)
+    @Mapping(target = "accessToken", ignore = true)
     @Mapping(target = "responseCode", ignore = true)
-    @Mapping(target = "dateTime",     ignore = true)
+    @Mapping(target = "dateTime", ignore = true)
     UserResponse.Single toSingle(User user);
 
     default UserResponse.Single toSingle(String requestId, User user) {

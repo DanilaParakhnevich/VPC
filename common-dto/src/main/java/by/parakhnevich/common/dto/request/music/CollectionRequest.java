@@ -13,7 +13,8 @@ public sealed interface CollectionRequest extends MusicRequest permits
         CollectionRequest.Create, CollectionRequest.GetById, CollectionRequest.GetAll,
         CollectionRequest.Update, CollectionRequest.Delete {
 
-    @Builder @With
+    @Builder
+    @With
     record Create(
             String requestId,
             String title,
@@ -27,7 +28,8 @@ public sealed interface CollectionRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetById(
             String requestId,
             Long id
@@ -37,7 +39,8 @@ public sealed interface CollectionRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetAll(
             String requestId,
             Integer page,
@@ -50,7 +53,8 @@ public sealed interface CollectionRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Update(
             String requestId,
             Long id,
@@ -61,7 +65,8 @@ public sealed interface CollectionRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Delete(
             String requestId,
             Long id

@@ -58,12 +58,12 @@ public class UserRequestConsumer {
             userRequest = objectMapper.readValue(userRequestStr, UserRequest.class);
 
             UserResponse response = switch (userRequest) {
-                case UserRequest.Register r      -> register(r);
-                case UserRequest.Authenticate a  -> authenticate(a);
-                case UserRequest.GetById g       -> getById(g);
+                case UserRequest.Register r -> register(r);
+                case UserRequest.Authenticate a -> authenticate(a);
+                case UserRequest.GetById g -> getById(g);
                 case UserRequest.GetByUsername g -> getByUsername(g);
-                case UserRequest.GetAll f    -> getAllPageable(f);
-                case UserRequest.Update u        -> update(u);
+                case UserRequest.GetAll f -> getAllPageable(f);
+                case UserRequest.Update u -> update(u);
             };
 
             LOGGER.info("Sending response for request: {}", userRequest.requestId());

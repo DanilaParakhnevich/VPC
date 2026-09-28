@@ -16,8 +16,8 @@ import java.util.List;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "responseType", visible = false)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = MusicResponse.Single.class,        name = "SINGLE"),
-        @JsonSubTypes.Type(value = MusicResponse.Page.class,          name = "PAGE"),
+        @JsonSubTypes.Type(value = MusicResponse.Single.class, name = "SINGLE"),
+        @JsonSubTypes.Type(value = MusicResponse.Page.class, name = "PAGE"),
         @JsonSubTypes.Type(value = MusicResponse.ErrorResponse.class, name = "ERROR"),
 })
 public sealed interface MusicResponse permits
@@ -46,15 +46,17 @@ public sealed interface MusicResponse permits
 
         private final int code;
 
-        ResponseCode(int code) { this.code = code; }
+        ResponseCode(int code) {
+            this.code = code;
+        }
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "entity", visible = false)
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = MusicResponse.BandSingle.class,       name = "BAND"),
-            @JsonSubTypes.Type(value = MusicResponse.TrackSingle.class,      name = "TRACK"),
-            @JsonSubTypes.Type(value = MusicResponse.GenreSingle.class,      name = "GENRE"),
-            @JsonSubTypes.Type(value = MusicResponse.MusicianSingle.class,   name = "MUSICIAN"),
+            @JsonSubTypes.Type(value = MusicResponse.BandSingle.class, name = "BAND"),
+            @JsonSubTypes.Type(value = MusicResponse.TrackSingle.class, name = "TRACK"),
+            @JsonSubTypes.Type(value = MusicResponse.GenreSingle.class, name = "GENRE"),
+            @JsonSubTypes.Type(value = MusicResponse.MusicianSingle.class, name = "MUSICIAN"),
             @JsonSubTypes.Type(value = MusicResponse.CollectionSingle.class, name = "COLLECTION"),
     })
     sealed interface Single extends MusicResponse permits BandSingle, CollectionSingle, Deleted, GenreSingle, MusicianSingle, TrackSingle {
@@ -63,7 +65,8 @@ public sealed interface MusicResponse permits
         String entity();
     }
 
-    @Builder @With
+    @Builder
+    @With
     record BandSingle(
             String requestId,
             Long id,
@@ -80,14 +83,19 @@ public sealed interface MusicResponse permits
     ) implements Single {
         public BandSingle {
             if (responseCode == null) responseCode = ResponseCode.OK;
-            if (dateTime     == null) dateTime     = LocalDateTime.now();
-            if (musicianIds  == null) musicianIds  = List.of();
-            if (genreIds     == null) genreIds     = List.of();
+            if (dateTime == null) dateTime = LocalDateTime.now();
+            if (musicianIds == null) musicianIds = List.of();
+            if (genreIds == null) genreIds = List.of();
         }
-        @Override public String entity() { return "BAND"; }
+
+        @Override
+        public String entity() {
+            return "BAND";
+        }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record TrackSingle(
             String requestId,
             Long id,
@@ -103,16 +111,21 @@ public sealed interface MusicResponse permits
             LocalDateTime dateTime
     ) implements Single {
         public TrackSingle {
-            if (responseCode  == null) responseCode  = ResponseCode.OK;
-            if (dateTime      == null) dateTime      = LocalDateTime.now();
-            if (bandIds       == null) bandIds       = List.of();
+            if (responseCode == null) responseCode = ResponseCode.OK;
+            if (dateTime == null) dateTime = LocalDateTime.now();
+            if (bandIds == null) bandIds = List.of();
             if (collectionIds == null) collectionIds = List.of();
-            if (genreIds      == null) genreIds      = List.of();
+            if (genreIds == null) genreIds = List.of();
         }
-        @Override public String entity() { return "TRACK"; }
+
+        @Override
+        public String entity() {
+            return "TRACK";
+        }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GenreSingle(
             String requestId,
             Long id,
@@ -125,12 +138,17 @@ public sealed interface MusicResponse permits
     ) implements Single {
         public GenreSingle {
             if (responseCode == null) responseCode = ResponseCode.OK;
-            if (dateTime     == null) dateTime     = LocalDateTime.now();
+            if (dateTime == null) dateTime = LocalDateTime.now();
         }
-        @Override public String entity() { return "GENRE"; }
+
+        @Override
+        public String entity() {
+            return "GENRE";
+        }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record MusicianSingle(
             String requestId,
             Long id,
@@ -145,13 +163,18 @@ public sealed interface MusicResponse permits
     ) implements Single {
         public MusicianSingle {
             if (responseCode == null) responseCode = ResponseCode.OK;
-            if (dateTime     == null) dateTime     = LocalDateTime.now();
-            if (bandIds      == null) bandIds      = List.of();
+            if (dateTime == null) dateTime = LocalDateTime.now();
+            if (bandIds == null) bandIds = List.of();
         }
-        @Override public String entity() { return "MUSICIAN"; }
+
+        @Override
+        public String entity() {
+            return "MUSICIAN";
+        }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record CollectionSingle(
             String requestId,
             Long id,
@@ -167,13 +190,18 @@ public sealed interface MusicResponse permits
     ) implements Single {
         public CollectionSingle {
             if (responseCode == null) responseCode = ResponseCode.OK;
-            if (dateTime     == null) dateTime     = LocalDateTime.now();
-            if (trackIds     == null) trackIds     = List.of();
+            if (dateTime == null) dateTime = LocalDateTime.now();
+            if (trackIds == null) trackIds = List.of();
         }
-        @Override public String entity() { return "COLLECTION"; }
+
+        @Override
+        public String entity() {
+            return "COLLECTION";
+        }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Deleted(
             String requestId,
             Long id,
@@ -184,11 +212,12 @@ public sealed interface MusicResponse permits
     ) implements Single {
         public Deleted {
             if (responseCode == null) responseCode = ResponseCode.OK;
-            if (dateTime     == null) dateTime     = LocalDateTime.now();
+            if (dateTime == null) dateTime = LocalDateTime.now();
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Page(
             String requestId,
             List<Single> content,
@@ -201,12 +230,13 @@ public sealed interface MusicResponse permits
     ) implements MusicResponse {
         public Page {
             if (responseCode == null) responseCode = ResponseCode.OK;
-            if (dateTime     == null) dateTime     = LocalDateTime.now();
-            if (content      == null) content      = List.of();
+            if (dateTime == null) dateTime = LocalDateTime.now();
+            if (content == null) content = List.of();
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record ErrorResponse(
             String requestId,
             ResponseCode responseCode,
@@ -215,7 +245,7 @@ public sealed interface MusicResponse permits
     ) implements MusicResponse {
         public ErrorResponse {
             if (responseCode == null) responseCode = ResponseCode.BAD_REQUEST;
-            if (dateTime     == null) dateTime     = LocalDateTime.now();
+            if (dateTime == null) dateTime = LocalDateTime.now();
         }
     }
 }

@@ -32,11 +32,9 @@ import java.util.concurrent.TimeoutException;
 public class BandController extends BaseMusicController {
 
     private static final Logger LOGGER = LogManager.getLogger(BandController.class);
-    
+    private final ObjectMapper objectMapper;
     @Value("${kafka.timeout:6}")
     private long brokerTimeout = 6;
-
-    private final ObjectMapper objectMapper;
 
     public BandController(MusicRequestProducer producer, ObjectMapper objectMapper) {
         super(producer);
@@ -84,7 +82,7 @@ public class BandController extends BaseMusicController {
     @Operation(summary = "Get bands page")
     @GetMapping({"", "/"})
     public ResponseEntity<? extends MusicResponse> getAll(
-            @Parameter(example = "0")  @RequestParam(defaultValue = "0")  int page,
+            @Parameter(example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(example = "20") @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String nameLike,
             @RequestParam(required = false) String geo) {

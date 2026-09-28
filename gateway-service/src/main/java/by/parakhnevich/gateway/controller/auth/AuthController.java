@@ -37,12 +37,10 @@ import java.util.concurrent.TimeoutException;
 public class AuthController {
 
     private static final Logger LOGGER = LogManager.getLogger(AuthController.class);
-    
-    @Value("${kafka.timeout:6}")
-    private long brokerTimeout = 6;
-
     private final UserRequestProducer userRequestProducer;
     private final UserMapper userMapper;
+    @Value("${kafka.timeout:6}")
+    private long brokerTimeout = 6;
 
     @Operation(
             summary = "Register user",

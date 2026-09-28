@@ -33,8 +33,8 @@ logging:
     org.springframework.web: INFO
     org.springframework.security: WARN
     org.springframework.kafka: INFO
-#    org.springframework.kafka: TRACE
-#    org.springframework.kafka.listener: TRACE
+  #    org.springframework.kafka: TRACE
+  #    org.springframework.kafka.listener: TRACE
   pattern:
     console: "%d{ISO8601} %highlight(%-5level) [%thread] %logger{36} - %msg%n"
     file: "%d{ISO8601} %-5level [%thread] %logger{36} - %msg%n"

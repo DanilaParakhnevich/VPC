@@ -13,17 +13,18 @@ import java.util.UUID;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "action", visible = false)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = BandRequest.Create.class,  name = "CREATE"),
+        @JsonSubTypes.Type(value = BandRequest.Create.class, name = "CREATE"),
         @JsonSubTypes.Type(value = BandRequest.GetById.class, name = "GET_BY_ID"),
-        @JsonSubTypes.Type(value = BandRequest.GetAll.class,  name = "GET_ALL"),
-        @JsonSubTypes.Type(value = BandRequest.Update.class,  name = "UPDATE"),
-        @JsonSubTypes.Type(value = BandRequest.Delete.class,  name = "DELETE"),
+        @JsonSubTypes.Type(value = BandRequest.GetAll.class, name = "GET_ALL"),
+        @JsonSubTypes.Type(value = BandRequest.Update.class, name = "UPDATE"),
+        @JsonSubTypes.Type(value = BandRequest.Delete.class, name = "DELETE"),
 })
 public sealed interface BandRequest extends MusicRequest permits
         BandRequest.Create, BandRequest.GetById, BandRequest.GetAll,
         BandRequest.Update, BandRequest.Delete {
 
-    @Builder @With
+    @Builder
+    @With
     record Create(
             String requestId,
             String imageId,
@@ -31,13 +32,14 @@ public sealed interface BandRequest extends MusicRequest permits
             String description,
             String geo,
             List<Integer> genres
-            ) implements BandRequest {
+    ) implements BandRequest {
         public Create {
             if (requestId == null) requestId = UUID.randomUUID().toString();
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetById(
             String requestId,
             Long id
@@ -47,7 +49,8 @@ public sealed interface BandRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetAll(
             String requestId,
             Integer page,
@@ -60,7 +63,8 @@ public sealed interface BandRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Update(
             String requestId,
             Long id,
@@ -71,7 +75,8 @@ public sealed interface BandRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Delete(
             String requestId,
             Long id

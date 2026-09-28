@@ -12,7 +12,8 @@ public sealed interface GenreRequest extends MusicRequest permits
         GenreRequest.Create, GenreRequest.GetById, GenreRequest.GetAll,
         GenreRequest.Update, GenreRequest.Delete {
 
-    @Builder @With
+    @Builder
+    @With
     record Create(
             String requestId,
             String title,
@@ -23,7 +24,8 @@ public sealed interface GenreRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetById(
             String requestId,
             Long id
@@ -33,7 +35,8 @@ public sealed interface GenreRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record GetAll(
             String requestId,
             Integer page,
@@ -45,7 +48,8 @@ public sealed interface GenreRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Update(
             String requestId,
             Long id,
@@ -56,7 +60,8 @@ public sealed interface GenreRequest extends MusicRequest permits
         }
     }
 
-    @Builder @With
+    @Builder
+    @With
     record Delete(
             String requestId,
             Long id

@@ -14,9 +14,9 @@ import java.util.List;
 @Mapper(componentModel = "cdi", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TrackMapper {
 
-    @Mapping(target = "bandIds",       expression = "java(toBandIds(track.getBands()))")
+    @Mapping(target = "bandIds", expression = "java(toBandIds(track.getBands()))")
     @Mapping(target = "collectionIds", expression = "java(toCollectionIds(track.getCollections()))")
-    @Mapping(target = "genreIds",      expression = "java(toGenreIds(track.getGenres()))")
+    @Mapping(target = "genreIds", expression = "java(toGenreIds(track.getGenres()))")
     MusicResponse.TrackSingle toSingle(Track track);
 
     default MusicResponse.TrackSingle toSingle(String requestId, Track track) {
@@ -27,9 +27,11 @@ public interface TrackMapper {
     default List<Long> toBandIds(List<Band> bands) {
         return bands == null ? List.of() : bands.stream().map(Band::getId).toList();
     }
+
     default List<Long> toCollectionIds(List<Collection> collections) {
         return collections == null ? List.of() : collections.stream().map(Collection::getId).toList();
     }
+
     default List<Long> toGenreIds(List<Genre> genres) {
         return genres == null ? List.of() : genres.stream().map(Genre::getId).toList();
     }

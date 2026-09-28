@@ -93,8 +93,8 @@ public class BandService {
             band.setName(name);
         }
         if (u.get("description") instanceof String desc) band.setDescription(desc);
-        if (u.get("geo")         instanceof String geo)  band.setGeo(geo);
-        if (u.get("imageId")     instanceof String img)  band.setImageId(img);
+        if (u.get("geo") instanceof String geo) band.setGeo(geo);
+        if (u.get("imageId") instanceof String img) band.setImageId(img);
 
         return bandMapper.toSingle(req.requestId(), band);
     }

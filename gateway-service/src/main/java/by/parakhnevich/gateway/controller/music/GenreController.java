@@ -29,10 +29,9 @@ import java.util.concurrent.TimeoutException;
 @RestController
 public class GenreController extends BaseMusicController {
 
+    private final ObjectMapper objectMapper;
     @Value("${kafka.timeout:6}")
     private long brokerTimeout = 6;
-
-    private final ObjectMapper objectMapper;
 
     public GenreController(MusicRequestProducer producer, ObjectMapper objectMapper) {
         super(producer);
@@ -78,7 +77,7 @@ public class GenreController extends BaseMusicController {
     @Operation(summary = "Get genres page")
     @GetMapping({"", "/"})
     public ResponseEntity<? extends MusicResponse> getAll(
-            @Parameter(example = "0")  @RequestParam(defaultValue = "0")  int page,
+            @Parameter(example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(example = "20") @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String titleLike) {
         try {

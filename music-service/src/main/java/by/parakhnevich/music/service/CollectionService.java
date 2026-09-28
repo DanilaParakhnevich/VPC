@@ -90,9 +90,9 @@ public class CollectionService {
                 .orElseThrow(() -> new NotFoundException("Collection " + req.id() + " not found"));
 
         var u = req.updates();
-        if (u.get("title")       instanceof String title) collection.setTitle(title);
-        if (u.get("description") instanceof String desc)  collection.setDescription(desc);
-        if (u.get("imageId")     instanceof String img)   collection.setImageId(img);
+        if (u.get("title") instanceof String title) collection.setTitle(title);
+        if (u.get("description") instanceof String desc) collection.setDescription(desc);
+        if (u.get("imageId") instanceof String img) collection.setImageId(img);
         if (u.get("collectionType") instanceof String type) {
             collection.setCollectionType(Collection.CollectionType.valueOf(type));
         }
