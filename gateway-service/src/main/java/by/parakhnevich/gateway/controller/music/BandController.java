@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,9 @@ import java.util.concurrent.TimeoutException;
 public class BandController extends BaseMusicController {
 
     private static final Logger LOGGER = LogManager.getLogger(BandController.class);
-    private static final long HTTP_TIMEOUT_SECONDS = 6;
+    
+    @Value("${kafka.timeout:6}")
+    private long brokerTimeout = 6;
 
     private final ObjectMapper objectMapper;
 
@@ -57,7 +60,7 @@ public class BandController extends BaseMusicController {
                     .geo(dto.getGeo())
                     .imageId(dto.getImageId())
                     .build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("createBand", e);
         } catch (Exception e) {
@@ -70,7 +73,7 @@ public class BandController extends BaseMusicController {
     public ResponseEntity<? extends MusicResponse> getById(@PathVariable Long id) {
         try {
             var req = BandRequest.GetById.builder().id(id).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("getBand(" + id + ")", e);
         } catch (Exception e) {
@@ -88,7 +91,7 @@ public class BandController extends BaseMusicController {
         try {
             var req = BandRequest.GetAll.builder()
                     .page(page).size(size).nameLike(nameLike).geo(geo).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("getAllBands", e);
         } catch (Exception e) {
@@ -105,7 +108,7 @@ public class BandController extends BaseMusicController {
             @SuppressWarnings("unchecked")
             Map<String, Object> updates = objectMapper.convertValue(dto, Map.class);
             var req = BandRequest.Update.builder().id(id).updates(updates).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("updateBand(" + id + ")", e);
         } catch (Exception e) {
@@ -118,7 +121,7 @@ public class BandController extends BaseMusicController {
     public ResponseEntity<? extends MusicResponse> delete(@PathVariable Long id) {
         try {
             var req = BandRequest.Delete.builder().id(id).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("deleteBand(" + id + ")", e);
         } catch (Exception e) {

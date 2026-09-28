@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,8 @@ import java.util.concurrent.TimeoutException;
 @RestController
 public class MusicianController extends BaseMusicController {
 
-    private static final long HTTP_TIMEOUT_SECONDS = 6;
+    @Value("${kafka.timeout:6}")
+    private long brokerTimeout = 6;
 
     private final ObjectMapper objectMapper;
 
@@ -54,7 +56,7 @@ public class MusicianController extends BaseMusicController {
                     .imageId(dto.getImageId())
                     .birthDate(dto.getBirthDate())
                     .build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("createMusician", e);
         } catch (Exception e) {
@@ -67,7 +69,7 @@ public class MusicianController extends BaseMusicController {
     public ResponseEntity<? extends MusicResponse> getById(@PathVariable Long id) {
         try {
             var req = MusicianRequest.GetById.builder().id(id).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("getMusician(" + id + ")", e);
         } catch (Exception e) {
@@ -90,7 +92,7 @@ public class MusicianController extends BaseMusicController {
                     .page(page).size(size)
                     .nameLike(nameLike)
                     .build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("getAllMusicians", e);
         } catch (Exception e) {
@@ -107,7 +109,7 @@ public class MusicianController extends BaseMusicController {
             @SuppressWarnings("unchecked")
             Map<String, Object> updates = objectMapper.convertValue(dto, Map.class);
             var req = MusicianRequest.Update.builder().id(id).updates(updates).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("updateMusician(" + id + ")", e);
         } catch (Exception e) {
@@ -120,7 +122,7 @@ public class MusicianController extends BaseMusicController {
     public ResponseEntity<? extends MusicResponse> delete(@PathVariable Long id) {
         try {
             var req = MusicianRequest.Delete.builder().id(id).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("deleteMusician(" + id + ")", e);
         } catch (Exception e) {

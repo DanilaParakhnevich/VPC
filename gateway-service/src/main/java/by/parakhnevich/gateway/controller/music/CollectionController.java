@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +29,8 @@ import java.util.concurrent.TimeoutException;
 @RestController
 public class CollectionController extends BaseMusicController {
 
-    private static final long HTTP_TIMEOUT_SECONDS = 6;
+    @Value("${kafka.timeout:6}")
+    private long brokerTimeout = 6;
 
     private final ObjectMapper objectMapper;
 
@@ -55,7 +57,7 @@ public class CollectionController extends BaseMusicController {
                     .collectionType(dto.getCollectionType())
                     .trackIds(dto.getTrackIds())
                     .build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("createCollection", e);
         } catch (Exception e) {
@@ -68,7 +70,7 @@ public class CollectionController extends BaseMusicController {
     public ResponseEntity<? extends MusicResponse> getById(@PathVariable Long id) {
         try {
             var req = CollectionRequest.GetById.builder().id(id).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("getCollection(" + id + ")", e);
         } catch (Exception e) {
@@ -89,7 +91,7 @@ public class CollectionController extends BaseMusicController {
                     .titleLike(titleLike)
                     .collectionType(collectionType)
                     .build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("getAllCollections", e);
         } catch (Exception e) {
@@ -106,7 +108,7 @@ public class CollectionController extends BaseMusicController {
             @SuppressWarnings("unchecked")
             Map<String, Object> updates = objectMapper.convertValue(dto, Map.class);
             var req = CollectionRequest.Update.builder().id(id).updates(updates).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("updateCollection(" + id + ")", e);
         } catch (Exception e) {
@@ -119,7 +121,7 @@ public class CollectionController extends BaseMusicController {
     public ResponseEntity<? extends MusicResponse> delete(@PathVariable Long id) {
         try {
             var req = CollectionRequest.Delete.builder().id(id).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("deleteCollection(" + id + ")", e);
         } catch (Exception e) {

@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +37,9 @@ import java.util.concurrent.TimeoutException;
 public class AuthController {
 
     private static final Logger LOGGER = LogManager.getLogger(AuthController.class);
-    private static final long HTTP_TIMEOUT_SECONDS = 6;
+    
+    @Value("${kafka.timeout:6}")
+    private long brokerTimeout = 6;
 
     private final UserRequestProducer userRequestProducer;
     private final UserMapper userMapper;
@@ -51,7 +54,7 @@ public class AuthController {
                     content = @Content(schema = @Schema(implementation = SignUpResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content),
             @ApiResponse(responseCode = "409", description = "Username or email already exists", content = @Content),
-            @ApiResponse(responseCode = "504", description = "user-service did not respond within " + HTTP_TIMEOUT_SECONDS + "s", content = @Content),
+            @ApiResponse(responseCode = "504", description = "user-service did not respond within timeout", content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal error", content = @Content)
     })
     @PostMapping("/register")
@@ -61,7 +64,7 @@ public class AuthController {
                     .register(signUpRequest.getEmail(),
                             signUpRequest.getUsername(),
                             signUpRequest.getPassword())
-                    .get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    .get(brokerTimeout, TimeUnit.SECONDS);
 
             if (response instanceof UserResponse.Single s && s.isSuccess()) {
                 return ResponseEntity.ok(userMapper.toSignUpResponse(s));
@@ -94,7 +97,7 @@ public class AuthController {
         try {
             var response = userRequestProducer
                     .authenticate(loginRequest.getUsername(), loginRequest.getPassword())
-                    .get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    .get(brokerTimeout, TimeUnit.SECONDS);
 
             if (response instanceof UserResponse.Single s && s.isSuccess()) {
                 return ResponseEntity.ok(userMapper.toAuthResponse(s));

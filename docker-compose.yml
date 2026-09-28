@@ -39,7 +39,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - broker-network
+      - media-network
 
   gateway-service:
     build:
@@ -213,6 +213,7 @@ services:
       retries: 3
       start_period: 40s
     networks:
+      - media-network
       - broker-network
 
 volumes:
@@ -231,4 +232,6 @@ networks:
   user-network:
     driver: bridge
   music-network:
+    driver: bridge
+  media-network:
     driver: bridge

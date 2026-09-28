@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,9 +36,12 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private static final Logger LOGGER = LogManager.getLogger(UserController.class);
-    private static final long HTTP_TIMEOUT_SECONDS = 6;
+
     private static final Set<String> ALLOWED_UPDATE_FIELDS =
             Set.of("username", "email", "password", "avatarUrl", "role");
+
+    @Value("${kafka.timeout:6}")
+    private long brokerTimeout = 6;
 
     private final UserRequestProducer userRequestProducer;
     private final ObjectMapper objectMapper;
@@ -52,7 +56,7 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = UserResponse.Single.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request parameters", content = @Content),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
-            @ApiResponse(responseCode = "504", description = "user-service did not respond within " + HTTP_TIMEOUT_SECONDS + "s", content = @Content),
+            @ApiResponse(responseCode = "504", description = "user-service did not respond within timeout time", content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal error", content = @Content)
     })
     @GetMapping("/find")
@@ -73,7 +77,7 @@ public class UserController {
                     ? userRequestProducer.getUserById(userId)
                     : userRequestProducer.getUserByUsername(username);
 
-            var response = future.get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var response = future.get(brokerTimeout, TimeUnit.SECONDS);
             return toResponse(response);
         } catch (TimeoutException e) {
             LOGGER.error("Timeout for findUser(userId={}, username={})", userId, username, e);
@@ -111,7 +115,7 @@ public class UserController {
         try {
             var response = userRequestProducer
                     .getAllUsers(page, size, emailLike, usernameLike)
-                    .get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    .get(brokerTimeout, TimeUnit.SECONDS);
 
             return toResponse(response);
         } catch (TimeoutException e) {
@@ -168,13 +172,13 @@ public class UserController {
 
             if (updates.isEmpty()) {
                 var current = userRequestProducer.getUserById(userId)
-                        .get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                        .get(brokerTimeout, TimeUnit.SECONDS);
                 return toResponse(current);
             }
 
             var response = userRequestProducer
                     .updateUser(userId, updates)
-                    .get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    .get(brokerTimeout, TimeUnit.SECONDS);
 
             return toResponse(response);
         } catch (TimeoutException e) {

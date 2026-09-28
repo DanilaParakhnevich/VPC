@@ -24,6 +24,7 @@ public class Collection extends BaseEntity {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "image_id")
     private String imageId;
 
     @Enumerated(value = EnumType.STRING)

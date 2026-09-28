@@ -17,12 +17,16 @@ import java.util.List;
 @Builder
 public class Band extends BaseEntity {
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "description")
     private String description;
 
+    @Column(name = "geo")
     private String geo;
 
+    @Column(name = "image_id")
     private String imageId;
 
     @ManyToMany(fetch = FetchType.LAZY)

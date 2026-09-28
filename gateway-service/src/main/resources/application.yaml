@@ -3,6 +3,7 @@ spring:
     name: gateway-service
 
   kafka:
+    timeout: 6
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:broker:9092}
     consumer:
       group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:gateway}

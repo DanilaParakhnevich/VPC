@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +29,8 @@ import java.util.concurrent.TimeoutException;
 @RestController
 public class GenreController extends BaseMusicController {
 
-    private static final long HTTP_TIMEOUT_SECONDS = 6;
+    @Value("${kafka.timeout:6}")
+    private long brokerTimeout = 6;
 
     private final ObjectMapper objectMapper;
 
@@ -52,7 +54,7 @@ public class GenreController extends BaseMusicController {
                     .title(dto.getTitle())
                     .description(dto.getDescription())
                     .build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("createGenre", e);
         } catch (Exception e) {
@@ -65,7 +67,7 @@ public class GenreController extends BaseMusicController {
     public ResponseEntity<? extends MusicResponse> getById(@PathVariable Long id) {
         try {
             var req = GenreRequest.GetById.builder().id(id).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("getGenre(" + id + ")", e);
         } catch (Exception e) {
@@ -83,7 +85,7 @@ public class GenreController extends BaseMusicController {
             var req = GenreRequest.GetAll.builder()
                     .page(page).size(size).titleLike(titleLike)
                     .build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("getAllGenres", e);
         } catch (Exception e) {
@@ -100,7 +102,7 @@ public class GenreController extends BaseMusicController {
             @SuppressWarnings("unchecked")
             Map<String, Object> updates = objectMapper.convertValue(dto, Map.class);
             var req = GenreRequest.Update.builder().id(id).updates(updates).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("updateGenre(" + id + ")", e);
         } catch (Exception e) {
@@ -113,7 +115,7 @@ public class GenreController extends BaseMusicController {
     public ResponseEntity<? extends MusicResponse> delete(@PathVariable Long id) {
         try {
             var req = GenreRequest.Delete.builder().id(id).build();
-            return toResponse(producer.sendAndReceive(req).get(HTTP_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             return timeout("deleteGenre(" + id + ")", e);
         } catch (Exception e) {

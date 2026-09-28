@@ -18,8 +18,10 @@ import java.util.List;
 @Builder
 public class Musician extends BaseEntity {
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "image_id")
     private String imageId;
 
     @Column(name = "birth_date")
