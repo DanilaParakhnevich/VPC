@@ -1,10 +1,8 @@
 package by.parakhnevich.music.domain.entity;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,15 +18,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @MappedSuperclass
-public abstract class BaseEntity extends PanacheEntity {
+public abstract class BaseEntity extends PanacheEntityBase {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @ToString.Include
     protected Long id;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", updatable = false, nullable = false)
     protected LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     protected LocalDateTime updatedAt;
 
     @PrePersist
