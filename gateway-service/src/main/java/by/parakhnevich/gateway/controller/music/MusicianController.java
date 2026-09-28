@@ -52,7 +52,7 @@ public class MusicianController extends BaseMusicController {
         try {
             var req = MusicianRequest.Create.builder()
                     .name(dto.getName())
-                    .imageId(dto.getImageId())
+                    .imageUrl(dto.getImageUrl())
                     .birthDate(dto.getBirthDate())
                     .build();
             return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));

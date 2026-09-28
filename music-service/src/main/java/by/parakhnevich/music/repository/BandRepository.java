@@ -2,9 +2,14 @@ package by.parakhnevich.music.repository;
 
 import by.parakhnevich.music.domain.entity.Band;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
 
+/**
+ * Created by agallochum on 2026-09-25
+ */
+@ApplicationScoped
 public class BandRepository implements PanacheRepository<Band> {
 
     public List<Band> findByMusician(Long musicianId) {

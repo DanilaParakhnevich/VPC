@@ -52,7 +52,7 @@ public class CollectionController extends BaseMusicController {
             var req = CollectionRequest.Create.builder()
                     .title(dto.getTitle())
                     .description(dto.getDescription())
-                    .imageId(dto.getImageId())
+                    .imageUrl(dto.getImageUrl())
                     .collectionType(dto.getCollectionType())
                     .trackIds(dto.getTrackIds())
                     .build();

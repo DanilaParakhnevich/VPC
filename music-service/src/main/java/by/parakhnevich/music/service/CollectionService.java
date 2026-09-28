@@ -40,9 +40,9 @@ public class CollectionService {
         var collection = Collection.builder()
                 .title(req.title())
                 .description(req.description())
-                .imageId(req.imageId())
+                .imageUrl(req.imageUrl())
                 .collectionType(type)
-                .single(req.trackIds() == null ? List.of() : trackRepository.list("id in ?1", req.trackIds()))
+                .tracks(req.trackIds() == null ? List.of() : trackRepository.list("id in ?1", req.trackIds()))
                 .build();
         collectionRepository.persist(collection);
         return collectionMapper.toSingle(req.requestId(), collection);
@@ -92,12 +92,12 @@ public class CollectionService {
         var u = req.updates();
         if (u.get("title") instanceof String title) collection.setTitle(title);
         if (u.get("description") instanceof String desc) collection.setDescription(desc);
-        if (u.get("imageId") instanceof String img) collection.setImageId(img);
+        if (u.get("imageUrl") instanceof String img) collection.setImageUrl(img);
         if (u.get("collectionType") instanceof String type) {
             collection.setCollectionType(Collection.CollectionType.valueOf(type));
         }
         if (u.get("trackIds") instanceof List<?> trackIds) {
-            collection.setSingle(trackRepository.list("id in ?1", trackIds));
+            collection.setTracks(trackRepository.list("id in ?1", trackIds));
         }
 
         return collectionMapper.toSingle(req.requestId(), collection);

@@ -27,7 +27,7 @@ public sealed interface BandRequest extends MusicRequest permits
     @With
     record Create(
             String requestId,
-            String imageId,
+            String imageUrl,
             String name,
             String description,
             String geo,

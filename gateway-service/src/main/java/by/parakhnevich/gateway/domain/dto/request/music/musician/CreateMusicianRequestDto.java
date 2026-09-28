@@ -16,7 +16,7 @@ public class CreateMusicianRequestDto {
     @Schema(example = "Mikael ?kerfeldt")
     private String name;
     @Schema(example = "mus-a3f8b2c1")
-    private String imageId;
+    private String imageUrl;
 
     @Schema(description = "Birth date (ISO-8601)", example = "1974-04-17")
     private LocalDate birthDate;

@@ -36,7 +36,7 @@ public class BandService {
                 .name(req.name())
                 .description(req.description())
                 .geo(req.geo())
-                .imageId(req.imageId())
+                .imageUrl(req.imageUrl())
                 .build();
         bandRepository.persist(band);
         return bandMapper.toSingle(req.requestId(), band);
@@ -94,7 +94,7 @@ public class BandService {
         }
         if (u.get("description") instanceof String desc) band.setDescription(desc);
         if (u.get("geo") instanceof String geo) band.setGeo(geo);
-        if (u.get("imageId") instanceof String img) band.setImageId(img);
+        if (u.get("imageUrl") instanceof String img) band.setImageUrl(img);
 
         return bandMapper.toSingle(req.requestId(), band);
     }

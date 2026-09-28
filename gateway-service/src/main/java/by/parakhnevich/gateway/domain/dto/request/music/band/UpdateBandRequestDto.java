@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Partial update — only provided fields change")
+@Schema(description = "Partial update ï¿½ only provided fields change")
 public class UpdateBandRequestDto {
 
     @Schema(description = "Band ID", example = "42", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -22,5 +22,5 @@ public class UpdateBandRequestDto {
     @Schema(example = "SE")
     private String geo;
     @Schema(example = "a3f8b2c1")
-    private String imageId;
+    private String imageUrl;
 }

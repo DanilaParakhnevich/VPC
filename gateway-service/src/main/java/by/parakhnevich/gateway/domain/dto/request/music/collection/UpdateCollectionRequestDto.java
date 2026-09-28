@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Partial update — only provided fields change")
+@Schema(description = "Partial update ï¿½ only provided fields change")
 public class UpdateCollectionRequestDto {
 
     @Schema(description = "Collection ID", example = "42", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -23,7 +23,7 @@ public class UpdateCollectionRequestDto {
     @Schema(example = "Updated description")
     private String description;
     @Schema(example = "col-a3f8b2c1")
-    private String imageId;
+    private String imageUrl;
 
     @Schema(example = "ALBUM",
             allowableValues = {"ALBUM", "SINGLE_OR_EP", "DEMO_ALBUM"})

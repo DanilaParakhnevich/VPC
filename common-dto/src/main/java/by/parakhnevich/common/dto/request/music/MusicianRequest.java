@@ -18,7 +18,7 @@ public sealed interface MusicianRequest extends MusicRequest permits
     record Create(
             String requestId,
             String name,
-            String imageId,
+            String imageUrl,
             LocalDate birthDate
     ) implements MusicianRequest {
         public Create {

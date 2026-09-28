@@ -21,5 +21,5 @@ public class CreateBandRequestDto {
     private String geo;
 
     @Schema(description = "Media-service image ID", example = "a3f8b2c1")
-    private String imageId;
+    private String imageUrl;
 }

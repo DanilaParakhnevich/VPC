@@ -56,7 +56,7 @@ public class BandController extends BaseMusicController {
                     .name(dto.getName())
                     .description(dto.getDescription())
                     .geo(dto.getGeo())
-                    .imageId(dto.getImageId())
+                    .imageUrl(dto.getImageUrl())
                     .build();
             return toResponse(producer.sendAndReceive(req).get(brokerTimeout, TimeUnit.SECONDS));
         } catch (TimeoutException e) {

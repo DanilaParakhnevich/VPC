@@ -13,7 +13,7 @@ import java.util.List;
 public interface CollectionMapper {
 
     @Mapping(target = "collectionType", expression = "java(collection.getCollectionType() == null ? null : collection.getCollectionType().name())")
-    @Mapping(target = "trackIds", expression = "java(toTrackIds(collection.getSingle()))")
+    @Mapping(target = "trackIds", expression = "java(toTrackIds(collection.getTracks()))")
     MusicResponse.CollectionSingle toSingle(Collection collection);
 
     default MusicResponse.CollectionSingle toSingle(String requestId, Collection collection) {

@@ -1,4 +1,4 @@
-# user-service/Dockerfile
+# music-service/Dockerfile
 FROM gradle:8.14-jdk21 AS builder
 
 WORKDIR /app
@@ -20,4 +20,4 @@ COPY --from=builder /app/music-service/build/quarkus-app /app
 USER appuser
 
 EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "quarkus-run.jar"]
+ENTRYPOINT ["java", "-Xmx200m", "-jar", "quarkus-run.jar"]

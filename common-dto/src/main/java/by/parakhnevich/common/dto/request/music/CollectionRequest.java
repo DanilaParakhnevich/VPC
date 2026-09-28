@@ -20,7 +20,7 @@ public sealed interface CollectionRequest extends MusicRequest permits
             String title,
             String description,
             String collectionType,
-            String imageId,
+            String imageUrl,
             List<Long> trackIds
     ) implements CollectionRequest {
         public Create {

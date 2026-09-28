@@ -18,7 +18,7 @@ public class CreateCollectionRequestDto {
     @Schema(example = "Studio album, 2002")
     private String description;
     @Schema(example = "col-a3f8b2c1")
-    private String imageId;
+    private String imageUrl;
 
     @Schema(description = "Collection type", example = "ALBUM",
             allowableValues = {"ALBUM", "SINGLE_OR_EP", "DEMO_ALBUM"})

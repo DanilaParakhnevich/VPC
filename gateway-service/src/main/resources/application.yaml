@@ -3,7 +3,6 @@ spring:
     name: gateway-service
 
   kafka:
-    timeout: 6
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:broker:9092}
     consumer:
       group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:gateway}
@@ -43,5 +42,7 @@ logging:
     max-size: 100MB
     max-history: 30
 
+kafka:
+  timeout: 6
 jwt:
   secret: ${JWT_SECRET:5367566859703373367639792F423F452848284D6251655468576D5A71347437}

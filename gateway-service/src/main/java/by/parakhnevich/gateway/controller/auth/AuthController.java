@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,12 +34,13 @@ import java.util.concurrent.TimeoutException;
 @Tag(name = "Auth", description = "Registration and authentication operations")
 @RequestMapping("/api/auth")
 @RestController
-@AllArgsConstructor
 public class AuthController {
 
     private static final Logger LOGGER = LogManager.getLogger(AuthController.class);
-    private final UserRequestProducer userRequestProducer;
-    private final UserMapper userMapper;
+    @Autowired
+    private UserRequestProducer userRequestProducer;
+    @Autowired
+    private UserMapper userMapper;
     @Value("${kafka.timeout:6}")
     private long brokerTimeout = 6;
 

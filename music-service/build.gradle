@@ -69,8 +69,8 @@ dependencies {
 }
 
 flyway {
-    url = 'jdbc:postgresql://localhost:5432/music'
-    user = 'postgresql'
+    url = 'jdbc:postgresql://localhost:5433/music'
+    user = 'postgres'
     password = '1234'
     locations = ['filesystem:src/main/resources/db/migration']
 }

@@ -38,8 +38,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - media-network
 
   gateway-service:
     build:
@@ -183,48 +181,13 @@ services:
       - music-network
       - broker-network
 
-  media-service:
-    build:
-      context: .
-      dockerfile: media-service/Dockerfile
-    container_name: media-service
-    depends_on:
-      redis:
-        condition: service_healthy
-      broker:
-        condition: service_healthy
-    environment:
-      KAFKA_BOOTSTRAP_SERVER: broker:9092
-      REDIS_HOST: redis
-      REDIS_PORT: ${REDIS_PORT:-6379}
-      MEDIA_STORAGE_DIR: /data/media
-      LOG_LEVEL: ${MEDIA_LOG_LEVEL:-DEBUG}
-      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-    ports:
-      - "${MEDIA_SERVICE_DEBUGGER_PORT:-5008}:5005"
-      - "${MEDIA_SERVICE_SERVER_PORT:-8084}:8080"
-    volumes:
-      - media_data:/data/media
-      - media_logs:/var/log/media-service
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/q/health" ]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 40s
-    networks:
-      - media-network
-      - broker-network
-
 volumes:
   redis_data:
   gateway_logs:
   user_postgres_data:
   music_postgres_data:
-  media_data:
   user_logs:
   music_logs:
-  media_logs:
 
 networks:
   broker-network:
@@ -232,6 +195,4 @@ networks:
   user-network:
     driver: bridge
   music-network:
-    driver: bridge
-  media-network:
     driver: bridge

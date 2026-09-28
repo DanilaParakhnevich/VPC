@@ -30,7 +30,7 @@ public class MusicianService {
     public MusicResponse.MusicianSingle create(MusicianRequest.Create req) {
         var musician = Musician.builder()
                 .name(req.name())
-                .imageId(req.imageId())
+                .imageUrl(req.imageUrl())
                 .birthDate(req.birthDate())
                 .build();
         musicianRepository.persist(musician);
@@ -76,7 +76,7 @@ public class MusicianService {
 
         var u = req.updates();
         if (u.get("name") instanceof String name) musician.setName(name);
-        if (u.get("imageId") instanceof String img) musician.setImageId(img);
+        if (u.get("imageUrl") instanceof String img) musician.setImageUrl(img);
         if (u.get("birthDate") instanceof String date) musician.setBirthDate(LocalDate.parse(date));
 
         return musicianMapper.toSingle(req.requestId(), musician);

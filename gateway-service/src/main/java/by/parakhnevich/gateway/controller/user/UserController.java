@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,15 +33,17 @@ import java.util.stream.Collectors;
 @Tag(name = "Users", description = "User management operations")
 @RequestMapping("/api/users")
 @RestController
-@AllArgsConstructor
 public class UserController {
 
     private static final Logger LOGGER = LogManager.getLogger(UserController.class);
 
     private static final Set<String> ALLOWED_UPDATE_FIELDS =
             Set.of("username", "email", "password", "avatarUrl", "role");
-    private final UserRequestProducer userRequestProducer;
-    private final ObjectMapper objectMapper;
+
+    @Autowired
+    private UserRequestProducer userRequestProducer;
+    @Autowired
+    private ObjectMapper objectMapper;
     @Value("${kafka.timeout:6}")
     private long brokerTimeout = 6;
 
