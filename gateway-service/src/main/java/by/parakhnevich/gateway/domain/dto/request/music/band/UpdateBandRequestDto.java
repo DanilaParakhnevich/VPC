@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Partial update � only provided fields change")
+@Schema(description = "Partial update - only provided fields change")
 public class UpdateBandRequestDto {
 
     @Schema(description = "Band ID", example = "42", requiredMode = Schema.RequiredMode.REQUIRED)

@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Partial update � only provided fields change")
+@Schema(description = "Partial update - only provided fields change")
 public class UpdateCollectionRequestDto {
 
     @Schema(description = "Collection ID", example = "42", requiredMode = Schema.RequiredMode.REQUIRED)

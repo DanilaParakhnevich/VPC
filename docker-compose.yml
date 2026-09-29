@@ -25,6 +25,29 @@ services:
     networks:
       - broker-network
 
+  openbucket:
+    image: ghcr.io/razin-developer/openbucket:latest
+    container_name: openbucket
+    ports:
+      - "${OPENBUCKET_S3_PORT:-8333}:8333"
+      - "${OPENBUCKET_MANAGEMENT_PORT:-7272}:7272"
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${OPENBUCKET_MANAGEMENT_PORT:-7272}/healthz" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    environment:
+      - OPENBUCKET_STORAGE_MOUNT=${OPENBUCKET_STORAGE_MOUNT:-/mnt/data}
+      - OPENBUCKET_S3_HOST=0.0.0.0
+      - OPENBUCKET_S3_PORT=${OPENBUCKET_S3_PORT:-8333}
+      - OPENBUCKET_MANAGEMENT_PORT=${OPENBUCKET_MANAGEMENT_PORT:-7272}
+    volumes:
+      - ${OPENBUCKET_STORAGE_MOUNT:-/mnt/data}:/data
+    restart: unless-stopped
+    networks:
+      - s3-network
+
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -152,6 +175,8 @@ services:
     depends_on:
       music-db:
         condition: service_healthy
+      openbucket:
+        condition: service_healthy
       broker:
         condition: service_healthy
     environment:
@@ -179,6 +204,7 @@ services:
       start_period: 40s
     networks:
       - music-network
+      - s3-network
       - broker-network
 
 volumes:
@@ -191,6 +217,8 @@ volumes:
 
 networks:
   broker-network:
+    driver: bridge
+  s3-network:
     driver: bridge
   user-network:
     driver: bridge

@@ -37,6 +37,9 @@ dependencies {
     // Kafka (SmallRye Reactive Messaging)
     implementation 'io.quarkus:quarkus-messaging-kafka'
 
+    // S3 storage API
+    implementation 'io.quarkiverse.amazonservices:quarkus-amazon-s3'
+
     // Security
     implementation "org.springframework.security:spring-security-crypto:${springVersion}"
     implementation("io.jsonwebtoken:jjwt:${jwtVersion}")
