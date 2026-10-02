@@ -22,6 +22,9 @@ repositories {
 dependencies {
     // Quarkus BOM
     implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:${quarkusVersion}")
+    implementation enforcedPlatform(
+            "io.quarkiverse.amazonservices:quarkus-amazon-services-bom:${amazonServicesVersion}"
+    )
 
     implementation "io.quarkus:quarkus-rest"
     implementation "io.quarkus:quarkus-rest-jsonb"
