@@ -25,25 +25,26 @@ services:
     networks:
       - broker-network
 
-  openbucket:
-    image: ghcr.io/razin-developer/openbucket:latest
-    container_name: openbucket
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: seaweedfs
+    command: server -dir=/data -s3
     ports:
-      - "${OPENBUCKET_S3_PORT:-8333}:8333"
-      - "${OPENBUCKET_MANAGEMENT_PORT:-7272}:7272"
+      - "${SEAWEEDFS_S3_PORT:-8333}:8333" # S3 API
+      - "${SEAWEEDFS_MANAGEMENT_PORT:-9333}:9333" # Master
+      - "${SEAWEEDFS_FILER_PORT-8888}:8888" # Filer UI/API
+    volumes:
+      - ${SEAWEEDFS_DATA:-/mnt/data}:/data
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${OPENBUCKET_MANAGEMENT_PORT:-7272}/healthz" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://127.0.0.1:9333/cluster/status || exit 1"
+        ]
       interval: 5s
       timeout: 3s
-      retries: 10
-      start_period: 10s
-    environment:
-      - OPENBUCKET_STORAGE_MOUNT=${OPENBUCKET_STORAGE_MOUNT:-/mnt/data}
-      - OPENBUCKET_S3_HOST=0.0.0.0
-      - OPENBUCKET_S3_PORT=${OPENBUCKET_S3_PORT:-8333}
-      - OPENBUCKET_MANAGEMENT_PORT=${OPENBUCKET_MANAGEMENT_PORT:-7272}
-    volumes:
-      - ${OPENBUCKET_STORAGE_MOUNT:-/mnt/data}:/data
+      retries: 20
+      start_period: 15s
     restart: unless-stopped
     networks:
       - s3-network
@@ -175,7 +176,7 @@ services:
     depends_on:
       music-db:
         condition: service_healthy
-      openbucket:
+      seaweedfs:
         condition: service_healthy
       broker:
         condition: service_healthy
